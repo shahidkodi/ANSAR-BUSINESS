@@ -236,6 +236,15 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 .sp .r.n b.g{color:var(--income)} .sp .r.n b.r{color:var(--expense)}
 .pcap{font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--green); display:flex; align-items:center; gap:8px; margin:2px 2px 12px}
 .pcap svg{width:19px; height:19px}
+.ledger .lhead{position:relative; z-index:2; display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--amber); margin-bottom:6px}
+.ledger .lhead svg{width:20px; height:20px}
+.ledger .lhead .open{margin-left:auto; font-size:11.5px; letter-spacing:.04em; color:#fff; background:rgba(255,255,255,.14); padding:4px 11px; border-radius:99px; cursor:pointer; text-transform:none; font-weight:700}
+.ledger .row.tap{cursor:pointer}
+.ledger .row .val.sm{font-size:15px}
+.ledger.veh{background:linear-gradient(150deg,#2E4163,#1B2740); padding-bottom:16px}
+.ledger.veh .lbl{color:#B8C6E0}
+.ledger.veh .row+.row{border-top-color:rgba(255,255,255,.2)}
+.seg button.sel.on{background:var(--green); color:#fff}
 /* ---------- Manage menu ---------- */
 .mmenu{list-style:none}
 .mmenu li{display:flex; align-items:center; gap:12px; padding:14px 2px; border-bottom:1px solid var(--border); cursor:pointer}
@@ -321,13 +330,13 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
   <button class="item" onclick="go('dash')"><svg class="ic"><use href="#i-chart"/></svg>Dashboard</button>
   <button class="item" onclick="go('d-reminders')"><svg class="ic"><use href="#i-bell"/></svg>Payment reminders</button>
-  <button class="item" onclick="go('d-collect')"><svg class="ic"><use href="#i-cash"/></svg>Quarry: to collect</button>
-  <button class="item" onclick="go('d-pay')"><svg class="ic"><use href="#i-wallet"/></svg>Quarry: to pay</button>
+  <button class="item" onclick="go('d-collect')"><svg class="ic"><use href="#i-cash"/></svg>To collect (pending)</button>
+  <button class="item" onclick="go('d-pay')"><svg class="ic"><use href="#i-wallet"/></svg>To pay (pending)</button>
   <button class="item" onclick="go('d-vehicles')"><svg class="ic"><use href="#i-lorry"/></svg>Quarry income by vehicle</button>
   <button class="item" onclick="go('d-cats')"><svg class="ic"><use href="#i-fuel"/></svg>Quarry expense by category</button>
   <button class="item" onclick="go('d-agents')"><svg class="ic"><use href="#i-person"/></svg>Quarry income by agent</button>
   <button class="item" onclick="go('d-last')"><svg class="ic"><use href="#i-list"/></svg>Last entries</button>
-  <button class="item" onclick="go('veh')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle income &amp; expense</button>
+  <button class="item" onclick="go('veh')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</button>
 </aside>
 
 <div class="topbar">
@@ -361,10 +370,12 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 
   <div class="ledger num">
-    <div class="lbl" style="position:relative;z-index:2;margin-bottom:4px">Consolidated · Quarry + Vehicles</div>
-    <div class="row"><span class="lbl">Total income</span><span class="val" id="dIncome">₹0</span></div>
-    <div class="row"><span class="lbl">Total expense</span><span class="val" id="dExpense">₹0</span></div>
-    <div class="row net"><span class="lbl">Combined net</span><span class="val" id="dNet">₹0</span></div>
+    <div class="lhead"><svg class="ic"><use href="#i-exc"/></svg>Quarry ledger<span class="open" onclick="showList('Q')">Entries ›</span></div>
+    <div class="row"><span class="lbl">Income</span><span class="val" id="dIncome">₹0</span></div>
+    <div class="row"><span class="lbl">Expense</span><span class="val" id="dExpense">₹0</span></div>
+    <div class="row net"><span class="lbl">Net</span><span class="val" id="dNet">₹0</span></div>
+    <div class="row tap" onclick="showPage('d-collect')"><span class="lbl">To collect (pending) ›</span><span class="val sm" id="dReceivable">₹0</span></div>
+    <div class="row tap" onclick="showPage('d-pay')"><span class="lbl">To pay (pending) ›</span><span class="val sm" id="dPayable">₹0</span></div>
 
     <!-- worksite scene: hill, excavator, tipper lorry -->
     <svg class="scene" viewBox="0 0 560 74" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
@@ -394,34 +405,19 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </svg>
   </div>
 
-  <div class="split num">
-    <div class="sp" onclick="showPage('list')">
-      <div class="h"><svg class="ic"><use href="#i-exc"/></svg>Quarry</div>
-      <div class="r"><span>Income</span><b id="sqIn">₹0</b></div>
-      <div class="r"><span>Expense</span><b id="sqOut">₹0</b></div>
-      <div class="r n"><span>Net</span><b id="sqNet">₹0</b></div>
-    </div>
-    <div class="sp" onclick="showPage('veh')">
-      <div class="h"><svg class="ic"><use href="#i-lorry"/></svg>Vehicles</div>
-      <div class="r"><span>Income</span><b id="svIn">₹0</b></div>
-      <div class="r"><span>Expense</span><b id="svOut">₹0</b></div>
-      <div class="r n"><span>Net</span><b id="svNet">₹0</b></div>
-    </div>
+  <div class="ledger veh num">
+    <div class="lhead"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger<span class="open" onclick="showList('VEH')">Entries ›</span></div>
+    <div class="row"><span class="lbl">Income</span><span class="val" id="vIn">₹0</span></div>
+    <div class="row"><span class="lbl">Expense</span><span class="val" id="vOut">₹0</span></div>
+    <div class="row net"><span class="lbl">Net</span><span class="val" id="vNet">₹0</span></div>
+    <div class="row tap" onclick="showPage('d-collect')"><span class="lbl">To collect (pending) ›</span><span class="val sm" id="vRec">₹0</span></div>
+    <div class="row tap" onclick="showPage('d-pay')"><span class="lbl">To pay (pending) ›</span><span class="val sm" id="vPay">₹0</span></div>
   </div>
 
   <button class="rembanner num" id="remBanner" style="display:none" onclick="showPage('d-reminders')">
     <svg class="ic"><use href="#i-bell"/></svg><span id="remBannerTxt"></span><span class="chev">›</span>
   </button>
 
-  <div class="statgrid num">
-    <div class="stat rec tap" onclick="showPage('d-collect')"><div class="chip"><svg class="ic"><use href="#i-cash"/></svg></div><div><div class="lbl">Quarry: to collect</div><div class="val" id="dReceivable">₹0</div></div></div>
-    <div class="stat pay tap" onclick="showPage('d-pay')"><div class="chip"><svg class="ic"><use href="#i-wallet"/></svg></div><div><div class="lbl">Quarry: to pay</div><div class="val" id="dPayable">₹0</div></div></div>
-  </div>
-
-  <div class="card num">
-    <h2><svg class="ic"><use href="#i-lorry"/></svg>Vehicle consolidation</h2>
-    <div id="dVehCon"></div>
-  </div>
 </div>
 
 <!-- ============ DASHBOARD SUB-PAGES ============ -->
@@ -465,6 +461,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 <!-- ================= NEW ENTRY ================= -->
 <div class="page" id="page-entry">
   <div class="pcap"><svg class="ic"><use href="#i-exc"/></svg>Quarry entry</div>
+  <div id="entryHost"><div id="entryForm">
   <div class="seg">
     <button type="button" class="inc on" id="segIncome"><svg class="ic"><use href="#i-lorry"/></svg>INCOME</button>
     <button type="button" class="exp" id="segExpense"><svg class="ic"><use href="#i-wallet"/></svg>EXPENSE</button>
@@ -507,17 +504,22 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
     <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-cash"/></svg>Balance</span><span class="val" id="fBalance">₹0</span></div>
 
-    <button class="btn" id="btnSave">Save entry</button>
+    <button class="btn" id="btnSave">Save quarry entry</button>
     <p class="hint" id="editHint" style="display:none">Editing an existing entry. Saving will update it.</p>
     <div class="btnrow" id="editActions" style="display:none">
       <button class="btn ghost" id="btnCancelEdit">Cancel edit</button>
     </div>
   </div>
+  </div></div>
 </div>
 
 <!-- ================= ENTRIES ================= -->
 <div class="page" id="page-list">
-  <div class="pcap"><svg class="ic"><use href="#i-exc"/></svg>Quarry entries</div>
+  <div class="seg">
+    <button type="button" class="sel on" id="lsQ" onclick="showList('Q')"><svg class="ic"><use href="#i-exc"/></svg>QUARRY</button>
+    <button type="button" class="sel" id="lsV" onclick="showList('VEH')"><svg class="ic"><use href="#i-lorry"/></svg>VEHICLE</button>
+  </div>
+  <div class="pcap" id="listCap"><svg class="ic"><use href="#i-exc"/></svg>Quarry entries</div>
   <div class="filters">
     <select id="lSite"></select>
     <select id="lType"><option value="">All types</option><option>INCOME</option><option>EXPENSE</option></select>
@@ -535,48 +537,9 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
 <!-- ================= VEHICLES ================= -->
 <div class="page" id="page-veh">
-  <div class="pcap"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</div>
-  <div class="seg">
-    <button type="button" class="inc on" id="vSegInc"><svg class="ic"><use href="#i-cash"/></svg>INCOME</button>
-    <button type="button" class="exp" id="vSegExp"><svg class="ic"><use href="#i-fuel"/></svg>EXPENSE</button>
-  </div>
+  <div class="pcap"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle entry</div>
+  <div id="vehHost"></div>
 
-  <div class="card">
-    <h2><svg class="ic"><use href="#i-lorry"/></svg><span id="vFormTitle">Vehicle income</span></h2>
-    <div class="field"><label for="vVehicle">Vehicle</label><select id="vVehicle"></select></div>
-    <div class="grid2">
-      <div class="field"><label for="vDate">Date</label><input type="date" id="vDate"></div>
-      <div class="field"><label for="vTime">Time</label><input type="time" id="vTime"></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label for="vSite">Site</label><select id="vSite"></select></div>
-      <div class="field"><label for="vCat">Category</label><select id="vCat"></select></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label for="vAmt">Amount ₹</label><input type="number" id="vAmt" inputmode="decimal"></div>
-      <div class="field"><label for="vMode">Mode</label><select id="vMode"><option>GPAY</option><option>BY HAND</option><option>BANK</option></select></div>
-    </div>
-    <div class="field"><label for="vNote">Note</label><input id="vNote" placeholder="e.g. Diesel 60 L, rear tyre"></div>
-    <button class="btn" id="vSave">Save vehicle entry</button>
-    <div class="btnrow" id="vEditActions" style="display:none"><button class="btn ghost" id="vCancel">Cancel edit</button></div>
-  </div>
-
-  <div class="filters">
-    <select id="vfVehicle"></select>
-    <select id="vfType"><option value="">Income &amp; expense</option><option>INCOME</option><option>EXPENSE</option></select>
-  </div>
-  <div class="filters">
-    <input type="date" id="vfFrom" title="From date">
-    <input type="date" id="vfTo" title="To date">
-  </div>
-
-  <div class="ledger num" style="padding-bottom:16px">
-    <div class="row"><span class="lbl">Vehicle income</span><span class="val" id="vIn">₹0</span></div>
-    <div class="row"><span class="lbl">Vehicle expense</span><span class="val" id="vOut">₹0</span></div>
-    <div class="row net"><span class="lbl">Net</span><span class="val" id="vNet">₹0</span></div>
-  </div>
-
-  <div id="vList"></div>
 </div>
 
 <!-- ================= MANAGE ================= -->
@@ -716,8 +679,9 @@ function showPage(p){
   const navKey = p.startsWith('m-') ? 'manage' : (p.startsWith('d-') ? 'dash' : p);
   document.querySelectorAll('nav button').forEach(el => el.classList.toggle('on', el.dataset.page===navKey));
   if(p==='dash') renderDash();
+  if(p==='entry') mountForm('Q');
+  if(p==='veh'){ mountForm('VEH'); refreshFormSelects(); }
   if(p==='list') renderList();
-  if(p==='veh') renderVeh();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
   if(p.startsWith('d-')) renderDashSub(p);
@@ -745,11 +709,11 @@ function setType(t){
   calc();
 }
 function refreshFormSelects(){
-  fillSelect($('fSite'), db.sites);
-  fillSelect($('fVehicle'), db.vehicles);
-  fillSelect($('fAgent'), db.agents, '— none —');
-  fillSelect($('fExpCat'), db.expenseCats);
-  fillSelect($('fEmployee'), [...db.employees.map(e=>e.name), ...db.vehicles]);
+  fillKeepValue($('fSite'), db.sites);
+  fillKeepValue($('fVehicle'), db.vehicles);
+  fillKeepValue($('fAgent'), db.agents, '— none —');
+  fillKeepValue($('fExpCat'), db.expenseCats);
+  fillKeepValue($('fEmployee'), [...db.employees.map(e=>e.name), ...db.vehicles]);
   if(!$('fDate').value) $('fDate').value = today();
   if(!$('fTime').value) $('fTime').value = nowTime();
 }
@@ -787,6 +751,7 @@ $('btnSave').addEventListener('click', () => {
     mode: $('fMode').value, next: $('fNext').value || '',
     status: bal>0 ? 'PENDING' : 'CLOSED'
   };
+  if(formSection==='VEH') e.src = 'VEH';
   if(editId){
     const i = db.entries.findIndex(x=>x.id===editId);
     if(i>-1) db.entries[i] = e;
@@ -796,10 +761,17 @@ $('btnSave').addEventListener('click', () => {
   }
   save();
   clearForm();
-  toast('Entry saved');
-  showPage('list');
+  toast(formSection==='VEH' ? 'Vehicle entry saved' : 'Quarry entry saved');
+  showList(formSection);
 });
-$('btnCancelEdit').addEventListener('click', () => { editId=null; clearForm(); showPage('list'); });
+$('btnCancelEdit').addEventListener('click', () => { editId=null; clearForm(); showList(formSection); });
+let formSection = 'Q';
+function mountForm(sec){
+  if(sec !== formSection && editId){ editId = null; clearForm(); }
+  formSection = sec;
+  $(sec==='VEH' ? 'vehHost' : 'entryHost').appendChild($('entryForm'));
+  $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
+}
 function clearForm(){
   ['fAddress','fItem','fQty','fRate','fCash','fAdvance','fNext'].forEach(id => $(id).value='');
   $('fDate').value = today();
@@ -816,7 +788,12 @@ function renderList(){
   fillKeepValue($('lSite'), db.sites, 'All sites');
   const site=$('lSite').value, type=$('lType').value, st=$('lStatus').value, q=$('lSearch').value.trim().toUpperCase();
   const from=$('lFrom').value, to=$('lTo').value;
-  const rows = quarry().filter(e =>
+  const isV = listSection==='VEH';
+  $('lsQ').classList.toggle('on', !isV);
+  $('lsV').classList.toggle('on', isV);
+  $('listCap').innerHTML = isV ? `${icon('i-lorry')}Vehicle entries` : `${icon('i-exc')}Quarry entries`;
+  const base = isV ? db.entries.filter(isVehEntry) : quarry();
+  const rows = base.filter(e =>
     (!site || e.site===site) &&
     (!type || e.ctype===type) &&
     (!st || e.status===st) &&
@@ -863,23 +840,26 @@ function fillKeepValue(sel, items, blank){
 function closeEntry(id){
   const e = db.entries.find(x=>x.id===id); if(!e) return;
   e.advance = e.amount; e.balance = 0; e.status = 'CLOSED';
-  save(); renderList(); toast('Marked closed');
+  save(); renderList(); if($('page-veh').classList.contains('active')) renderVeh(); toast('Marked closed');
 }
 function editEntry(id){
   const e = db.entries.find(x=>x.id===id); if(!e) return;
-  if(e.src==='VEH'){ vEdit(e); return; }
+  showPage(e.src==='VEH' ? 'veh' : 'entry');
   editId = id;
   setType(e.ctype);
   refreshFormSelects();
   $('fSite').value=e.site; $('fDate').value=e.date; $('fTime').value=e.time||'';
   if(e.ctype==='INCOME'){ $('fVehicle').value=e.subject; $('fAgent').value=e.agent||''; $('fAddress').value=e.address||''; }
-  else { $('fExpCat').value=e.info; $('fEmployee').value=e.subject; }
+  else {
+    if(e.info && ![...$('fExpCat').options].some(o=>o.value===e.info)) $('fExpCat').insertAdjacentHTML('beforeend', `<option>${esc(e.info)}</option>`);
+    $('fExpCat').value=e.info; $('fEmployee').value=e.subject;
+  }
   $('fItem').value=e.item||''; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
   $('fCash').value=e.amount;
   $('fAdvance').value=e.advance||''; $('fNext').value=e.next||''; $('fMode').value=e.mode||'GPAY';
   calc();
   $('editHint').style.display=''; $('editActions').style.display='';
-  showPage('entry');
+  window.scrollTo(0,0);
 }
 function delEntry(id){
   if(!confirm('Delete this entry?')) return;
@@ -902,76 +882,54 @@ function renderDash(){
   const site=$('dashSite').value, mon=$('dashMonth').value;
   const from=$('dFrom').value, to=$('dTo').value;
   const rows = db.entries.filter(e => (!site||e.site===site) && (!mon||(e.date||'').startsWith(mon)) && (!from||e.date>=from) && (!to||e.date<=to));
-  let inc=0, exp=0, rec=0, pay=0;
-  const byVeh={}, byCat={}, byAg={};
+  const L = () => ({i:0, o:0, r:0, p:0});
+  const q = L(), v = L();
   rows.forEach(e => {
-    if(e.src==='VEH') return;
-    if(e.ctype==='INCOME'){
-      inc += e.amount;
-      if(e.status==='PENDING') rec += e.balance;
-      byVeh[e.subject]=(byVeh[e.subject]||0)+e.amount;
-      if(e.agent) byAg[e.agent]=(byAg[e.agent]||0)+e.amount;
-    } else {
-      exp += e.amount;
-      if(e.status==='PENDING') pay += e.balance;
-      byCat[e.info||'OTHER']=(byCat[e.info||'OTHER']||0)+e.amount;
-    }
+    const t = e.src==='VEH' ? v : q;
+    if(e.ctype==='INCOME'){ t.i += e.amount; if(e.status==='PENDING') t.r += e.balance; }
+    else { t.o += e.amount; if(e.status==='PENDING') t.p += e.balance; }
   });
-  $('dReceivable').textContent=fmt(rec);
-  $('dPayable').textContent=fmt(pay);
+  // Quarry ledger
+  $('dIncome').textContent = fmt(q.i);
+  $('dExpense').textContent = fmt(q.o);
+  $('dNet').textContent = sfmt(q.i - q.o);
+  $('dReceivable').textContent = fmt(q.r);
+  $('dPayable').textContent = fmt(q.p);
+  // Vehicle ledger
+  $('vIn').textContent = fmt(v.i);
+  $('vOut').textContent = fmt(v.o);
+  $('vNet').textContent = sfmt(v.i - v.o);
+  $('vRec').textContent = fmt(v.r);
+  $('vPay').textContent = fmt(v.p);
+
   // --- reminder banner (all entries, not affected by filters) ---
   const nowD = today();
   const in7 = new Date(Date.now()+7*86400000).toISOString().slice(0,10);
-  const week = quarry().filter(e => e.status==='PENDING' && e.next && e.next <= in7);
+  const week = db.entries.filter(e => e.status==='PENDING' && e.next && e.next <= in7);
   const due = week.filter(e => e.next <= nowD);
   $('remBanner').style.display = week.length ? '' : 'none';
   $('remBannerTxt').textContent = due.length
     ? `${due.length} payment${due.length>1?'s':''} due now — view reminders`
     : `${week.length} payment${week.length>1?'s':''} coming up this week`;
-
-  // --- vehicle consolidation (respects dashboard filters) ---
-  const vc = {};
-  rows.filter(isVehEntry).forEach(e => {
-    const v = vc[e.subject] || (vc[e.subject] = {i:0, o:0});
-    if(e.ctype==='INCOME') v.i += e.amount; else v.o += e.amount;
-  });
-  const vks = Object.keys(vc).sort((a,b) => (vc[b].i-vc[b].o) - (vc[a].i-vc[a].o));
-  const netAmt = n => `<span class="amt ${n>=0?'g':'r'}">${n<0?'−':''}${fmt(Math.abs(n))}</span>`;
-  let ti=0, tx=0;
-  const vRows = vks.map(k => {
-    const v = vc[k]; ti += v.i; tx += v.o;
-    return `<div class="bar tap" data-v="${esc(k)}" onclick="openVeh(this.dataset.v)"><span class="bic">${icon('i-lorry')}</span><span class="name">${esc(k)}<div class="sub2">In ${fmt(v.i)} · Out ${fmt(v.o)}</div></span>${netAmt(v.i-v.o)}</div>`;
-  }).join('');
-  $('dVehCon').innerHTML = vks.length
-    ? vRows + `<div class="bar total"><span class="name">All vehicles<div class="sub2">In ${fmt(ti)} · Out ${fmt(tx)}</div></span>${netAmt(ti-tx)}</div>`
-    : emptyMini('No vehicle entries yet');
-
-  // --- quarry vs vehicle split + consolidated hero ---
-  const setNet = (id, n) => { $(id).textContent = sfmt(n); $(id).className = n>=0 ? 'g' : 'r'; };
-  $('sqIn').textContent = fmt(inc);  $('sqOut').textContent = fmt(exp);  setNet('sqNet', inc-exp);
-  $('svIn').textContent = fmt(ti);   $('svOut').textContent = fmt(tx);   setNet('svNet', ti-tx);
-  $('dIncome').textContent = fmt(inc+ti);
-  $('dExpense').textContent = fmt(exp+tx);
-  $('dNet').textContent = sfmt((inc+ti)-(exp+tx));
 }
 function miniRow(e, showBal){
   const t = e.ctype;
   const amt = showBal ? e.balance : e.amount;
-  return `<div class="bar"><span class="bic ${t==='INCOME'?'inc':'exp'}">${icon(catIcon(e))}</span><span class="name">${esc(e.subject)}<div class="sub2">${esc(e.date)}${e.time?' '+fmtTime(e.time):''} · ${esc(e.site)}${e.agent?' · '+esc(e.agent):''}</div></span><span class="amt ${t==='INCOME'?'g':'r'}">${fmt(amt)}</span></div>`;
+  return `<div class="bar"><span class="bic ${t==='INCOME'?'inc':'exp'}">${icon(catIcon(e))}</span><span class="name">${esc(e.subject)}<div class="sub2">${e.src==='VEH'?'Vehicle':'Quarry'} · ${esc(e.date)}${e.time?' '+fmtTime(e.time):''} · ${esc(e.site)}${e.agent?' · '+esc(e.agent):''}</div></span><span class="amt ${t==='INCOME'?'g':'r'}">${fmt(amt)}</span></div>`;
 }
 function renderDashSub(p){
   if(p==='d-reminders'){
     const nowD = today();
-    const rows = quarry().filter(e => e.status==='PENDING' && e.next).sort((a,b)=>a.next.localeCompare(b.next));
+    const rows = db.entries.filter(e => e.status==='PENDING' && e.next).sort((a,b)=>a.next.localeCompare(b.next));
     $('pReminders').innerHTML = rows.length ? rows.map(e => {
       const cls = e.next < nowD ? 'od' : (e.next === nowD ? 'td' : 'up');
       const lbl = e.next < nowD ? 'OVERDUE' : (e.next === nowD ? 'TODAY' : e.next.slice(5));
-      return `<div class="bar"><span class="bic">${icon(catIcon(e))}</span><span class="name">${esc(e.subject)}<div class="sub2">${e.ctype==='INCOME'?'To collect':'To pay'} · ${esc(e.site)}</div></span><span class="due ${cls}">${lbl}</span><span class="amt">${fmt(e.balance)}</span></div>`;
+      return `<div class="bar"><span class="bic">${icon(catIcon(e))}</span><span class="name">${esc(e.subject)}<div class="sub2">${e.src==='VEH'?'Vehicle':'Quarry'} · ${e.ctype==='INCOME'?'To collect':'To pay'} · ${esc(e.site)}</div></span><span class="due ${cls}">${lbl}</span><span class="amt">${fmt(e.balance)}</span></div>`;
     }).join('') : emptyMini('No pending payments with a next date');
   }
   if(p==='d-collect' || p==='d-pay'){
     const t = p==='d-collect' ? 'INCOME' : 'EXPENSE';
-    const rows = quarry().filter(e => e.status==='PENDING' && e.ctype===t)
+    const rows = db.entries.filter(e => e.status==='PENDING' && e.ctype===t)
       .sort((a,b) => ((a.next||a.date||'')).localeCompare(b.next||b.date||''));
     const total = rows.reduce((s,e) => s + (e.balance||0), 0);
     $(p==='d-collect'?'pCollectTotal':'pPayTotal').textContent = fmt(total);
@@ -1017,89 +975,12 @@ function monthLabel(m){
 }
 
 /* ================= VEHICLES ================= */
-const VEH_CATS = {
-  INCOME: ['TRIP','RENT','OTHER'],
-  EXPENSE: ['FUEL','SERVICE','TYRE','REPAIR','INSURANCE','TAX / PERMIT','DRIVER BATA','OTHER']
-};
-let vType = 'INCOME', vEditId = null;
 function isVehEntry(e){ return e.src==='VEH'; }
 function quarry(){ return db.entries.filter(e => e.src!=='VEH'); }
 function sfmt(n){ return (n<0?'−':'') + fmt(Math.abs(n)); }
-$('vSegInc').addEventListener('click', () => setVType('INCOME'));
-$('vSegExp').addEventListener('click', () => setVType('EXPENSE'));
-function setVType(t){
-  vType = t;
-  $('vSegInc').classList.toggle('on', t==='INCOME');
-  $('vSegExp').classList.toggle('on', t==='EXPENSE');
-  $('vFormTitle').textContent = t==='INCOME' ? 'Vehicle income' : 'Vehicle expense';
-  fillSelect($('vCat'), VEH_CATS[t]);
-}
-function vRefresh(){
-  fillKeepValue($('vVehicle'), db.vehicles);
-  fillKeepValue($('vSite'), db.sites);
-  fillKeepValue($('vfVehicle'), db.vehicles, 'All vehicles');
-  if(!$('vDate').value) $('vDate').value = today();
-  if(!$('vTime').value) $('vTime').value = nowTime();
-}
-function vClear(){
-  $('vAmt').value=''; $('vNote').value='';
-  $('vDate').value = today(); $('vTime').value = nowTime();
-  vEditId = null; $('vEditActions').style.display='none';
-  $('vSave').textContent = 'Save vehicle entry';
-}
-$('vSave').addEventListener('click', () => {
-  const amt = +$('vAmt').value||0;
-  if(!$('vVehicle').value){ toast('Add a vehicle in Manage first'); return; }
-  if(!amt){ toast('Enter the amount'); return; }
-  const e = {
-    id: vEditId || Date.now().toString(36), src:'VEH',
-    site: $('vSite').value, ctype: vType,
-    date: $('vDate').value || today(), time: $('vTime').value || nowTime(),
-    subject: $('vVehicle').value, info: $('vCat').value,
-    agent:'', address:'', note: $('vNote').value.trim(),
-    item:null, qty:null, rate:null,
-    amount: amt, advance: amt, balance: 0,
-    mode: $('vMode').value, next:'', status:'CLOSED'
-  };
-  if(vEditId){
-    const i = db.entries.findIndex(x=>x.id===vEditId);
-    if(i>-1) db.entries[i] = e;
-  } else db.entries.unshift(e);
-  save(); vClear(); renderVeh(); toast('Vehicle entry saved');
-});
-$('vCancel').addEventListener('click', () => { vClear(); renderVeh(); });
-function vEdit(e){
-  showPage('veh');
-  setVType(e.ctype);
-  $('vVehicle').value = e.subject; $('vSite').value = e.site;
-  $('vCat').value = e.info; $('vDate').value = e.date; $('vTime').value = e.time||'';
-  $('vAmt').value = e.amount; $('vMode').value = e.mode||'GPAY'; $('vNote').value = e.note||'';
-  vEditId = e.id; $('vEditActions').style.display='';
-  $('vSave').textContent = 'Update vehicle entry';
-  window.scrollTo(0,0);
-}
-function openVeh(v){
-  showPage('veh');
-  $('vfVehicle').value = v;
-  renderVeh();
-  $('vList').scrollIntoView({behavior:'smooth', block:'start'});
-}
-['vfVehicle','vfType','vfFrom','vfTo'].forEach(id => $(id).addEventListener('change', renderVeh));
-function renderVeh(){
-  vRefresh();
-  const vv=$('vfVehicle').value, t=$('vfType').value, from=$('vfFrom').value, to=$('vfTo').value;
-  const rows = db.entries.filter(e => isVehEntry(e) &&
-      (!vv || e.subject===vv) && (!t || e.ctype===t) &&
-      (!from || e.date>=from) && (!to || e.date<=to))
-    .sort((a,b) => ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
-  let i=0, o=0;
-  rows.forEach(e => { if(e.ctype==='INCOME') i+=e.amount; else o+=e.amount; });
-  $('vIn').textContent = fmt(i);
-  $('vOut').textContent = fmt(o);
-  $('vNet').textContent = (i-o<0?'−':'') + fmt(Math.abs(i-o));
-  $('vList').innerHTML = rows.length ? rows.map(entryCard).join('')
-    : `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No vehicle entries for this selection.</div>`;
-}
+let listSection = 'Q';
+function showList(sec){ listSection = sec; showPage('list'); }
+function renderVeh(){ if($('page-list').classList.contains('active')) renderList(); }
 
 /* ================= MANAGE ================= */
 function renderMenu(){
@@ -1172,8 +1053,6 @@ function importJSON(input){
 /* ================= INIT ================= */
 $('todayLabel').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
 refreshFormSelects();
-setVType('INCOME');
-vRefresh();
 renderDash();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
