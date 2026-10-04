@@ -486,7 +486,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </div>
 
     <div class="grid2" id="rowQuality">
-      <div class="field"><label for="fQuality">Quality / material</label><select id="fQuality"></select></div>
+      <div class="field"><label for="fQuality">Material</label><select id="fQuality"></select></div>
       <div class="field"><label for="fQType">Quality type</label><select id="fQType"></select></div>
     </div>
 
@@ -588,6 +588,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row"><span class="lbl">Income</span><span class="val" id="rpQIn">₹0</span></div>
     <div class="row"><span class="lbl">Expense</span><span class="val" id="rpQOut">₹0</span></div>
     <div class="row net"><span class="lbl">Net</span><span class="val" id="rpQNet">₹0</span></div>
+    <div class="row"><span class="lbl">Received − paid</span><span class="val sm" id="rpQCash">₹0</span></div>
     <div class="row"><span class="lbl">Pending</span><span class="val sm" id="rpQPend">₹0</span></div>
   </div>
 
@@ -596,6 +597,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row"><span class="lbl">Income</span><span class="val" id="rpVIn">₹0</span></div>
     <div class="row"><span class="lbl">Expense</span><span class="val" id="rpVOut">₹0</span></div>
     <div class="row net"><span class="lbl">Net</span><span class="val" id="rpVNet">₹0</span></div>
+    <div class="row"><span class="lbl">Received − paid</span><span class="val sm" id="rpVCash">₹0</span></div>
     <div class="row"><span class="lbl">Pending</span><span class="val sm" id="rpVPend">₹0</span></div>
   </div>
 
@@ -605,7 +607,8 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 
   <div class="btnrow" style="margin-bottom:14px">
-    <button class="btn" onclick="rpExport()">Download report (CSV)</button>
+    <button class="btn" onclick="rpPdf()">Report PDF</button>
+    <button class="btn ghost" onclick="rpExport()">CSV</button>
   </div>
 
   <div id="rpList"></div>
@@ -621,7 +624,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <li onclick="showPage('m-employees')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Employees</span><span class="cnt" id="cEmployees"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-agents')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Agents</span><span class="cnt" id="cAgents"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-machines')"><span class="lic"><svg class="ic"><use href="#i-exc"/></svg></span><span class="nm">Machines / assets</span><span class="cnt" id="cMach"></span><span class="chev">›</span></li>
-      <li onclick="showPage('m-quality')"><span class="lic"><svg class="ic"><use href="#i-land"/></svg></span><span class="nm">Quality / material</span><span class="cnt" id="cQual"></span><span class="chev">›</span></li>
+      <li onclick="showPage('m-quality')"><span class="lic"><svg class="ic"><use href="#i-land"/></svg></span><span class="nm">Materials</span><span class="cnt" id="cQual"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-cats')"><span class="lic"><svg class="ic"><use href="#i-cash"/></svg></span><span class="nm">Expense categories</span><span class="cnt" id="cCats"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-backup')"><span class="lic"><svg class="ic"><use href="#i-save"/></svg></span><span class="nm">Backup &amp; export</span><span class="chev">›</span></li>
     </ul>
@@ -679,7 +682,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 </div>
 
 <div class="page" id="page-m-quality">
-  <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Quality / material <svg class="ic"><use href="#i-land"/></svg></span></div>
+  <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Materials <svg class="ic"><use href="#i-land"/></svg></span></div>
   <div class="card">
     <ul class="mlist" id="mQual"></ul>
     <div class="addrow"><input id="addQual" placeholder="e.g. METAL 40MM"><button class="btn" onclick="addMaster('qualities','addQual')">Add</button></div>
@@ -1238,19 +1241,19 @@ function rpRows(){
 }
 function renderReport(){
   const rows = rpRows();
-  const L = () => ({i:0,o:0,p:0});
+  const L = () => ({i:0,o:0,p:0,got:0,paid:0});
   const q=L(), v=L(), per={};
   rows.forEach(e => {
     const t = e.src==='VEH' ? v : q;
     const pv = per[e.subject] || (per[e.subject] = {qi:0,qo:0,vi:0,vo:0});
-    if(e.ctype==='INCOME'){ t.i+=e.amount; if(e.src==='VEH') pv.vi+=e.amount; else pv.qi+=e.amount; }
-    else { t.o+=e.amount; if(e.src==='VEH') pv.vo+=e.amount; else pv.qo+=e.amount; }
+    if(e.ctype==='INCOME'){ t.i+=e.amount; t.got+=e.advance||0; if(e.src==='VEH') pv.vi+=e.amount; else pv.qi+=e.amount; }
+    else { t.o+=e.amount; t.paid+=e.advance||0; if(e.src==='VEH') pv.vo+=e.amount; else pv.qo+=e.amount; }
     if(e.status==='PENDING') t.p += e.balance;
   });
   $('rpQIn').textContent=fmt(q.i); $('rpQOut').textContent=fmt(q.o);
-  $('rpQNet').textContent=sfmt(q.i-q.o); $('rpQPend').textContent=fmt(q.p);
+  $('rpQNet').textContent=sfmt(q.i-q.o); $('rpQPend').textContent=fmt(q.p); $('rpQCash').textContent=sfmt(q.got-q.paid);
   $('rpVIn').textContent=fmt(v.i); $('rpVOut').textContent=fmt(v.o);
-  $('rpVNet').textContent=sfmt(v.i-v.o); $('rpVPend').textContent=fmt(v.p);
+  $('rpVNet').textContent=sfmt(v.i-v.o); $('rpVPend').textContent=fmt(v.p); $('rpVCash').textContent=sfmt(v.got-v.paid);
   const ks = Object.keys(per).sort((a,b)=>((per[b].qi-per[b].qo)+(per[b].vi-per[b].vo))-((per[a].qi-per[a].qo)+(per[a].vi-per[a].vo)));
   $('rpByVehCard').style.display = ks.length>1 ? '' : 'none';
   $('rpByVeh').innerHTML = ks.map(k => {
@@ -1261,6 +1264,81 @@ function renderReport(){
     : `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No entries for this vehicle and period.</div>`;
 }
 function rpPick(v){ $('rpVehicle').value=v; renderReport(); window.scrollTo(0,0); }
+function rpHtml(rows){
+  const v = $('rpVehicle').value || 'All vehicles';
+  const sec = $('rpSrc').value==='VEH' ? 'Vehicle ledger' : ($('rpSrc').value==='Q' ? 'Quarry ledger' : 'Quarry + Vehicle ledgers');
+  const from = $('rpFrom').value || '—', to = $('rpTo').value || today();
+  const money = n => '₹' + (Number(n)||0).toLocaleString('en-IN');
+  let inc = 0, exp = 0, got = 0, paid = 0, due = 0, owe = 0;
+  const body = rows.map(e => {
+    if(e.ctype==='INCOME'){ inc += e.amount||0; got += e.advance||0; if(e.status==='PENDING') due += e.balance||0; }
+    else { exp += e.amount||0; paid += e.advance||0; if(e.status==='PENDING') owe += e.balance||0; }
+    return `<tr class="${e.ctype==='INCOME'?'in':'ex'}">
+      <td>${esc(e.date)}${e.time?'<span class="t"> '+esc(fmtTime(e.time))+'</span>':''}</td>
+      <td>${esc(e.subject)}</td>
+      <td>${esc(e.qtype||'')}</td>
+      <td>${esc(e.quality||e.info||'')}</td>
+      <td class="n">${e.rate!=null?e.rate:''}</td>
+      <td class="n">${e.qty!=null?e.qty:''}</td>
+      <td class="n b ${e.ctype==='INCOME'?'g':'r'}">${e.ctype==='INCOME'?'':'− '}${money(e.amount)}</td>
+      <td class="n">${money(e.advance)}</td>
+      <td class="n ${e.balance>0?'r b':''}">${e.balance>0?money(e.balance):'—'}</td>
+    </tr>`;
+  }).join('');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ansar Business report</title><style>
+    @page{size:A4;margin:12mm}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:12px}
+    h1{font-size:17px;letter-spacing:.06em;margin:0 0 2px}
+    .sub{font-size:11px;color:#5d655a;margin-bottom:2px}
+    .head{border-bottom:2px solid #0b4f43;padding-bottom:8px;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#0b4f43;color:#fff;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;text-align:left;padding:6px 7px}
+    td{padding:6px 7px;border-bottom:1px solid #e2dccb;vertical-align:top}
+    tr:nth-child(even) td{background:#faf8f3}
+    .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .b{font-weight:700}
+    .t{color:#8a9185}
+    tfoot td{border-top:2px solid #0b4f43;border-bottom:none;font-weight:800;font-size:12.5px;padding-top:8px}
+    tfoot tr.mid td{border-top:none;padding-top:3px}
+    tfoot tr:last-child td{font-size:14px;border-top:1px solid #0b4f43;padding-top:6px}
+    .g{color:#1e7a46} .r{color:#c24a22}
+    .foot{margin-top:14px;font-size:10px;color:#8a9185;text-align:center}
+  </style></head><body>
+    <div class="head">
+      <h1>ANSAR BUSINESS</h1>
+      <div class="sub">Vehicle report · ${esc(sec)}</div>
+      <div class="sub">Vehicle: <b>${esc(v)}</b> &nbsp;·&nbsp; Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries</div>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Vehicle number</th><th>Quality type</th><th>Material</th><th class="n">Rate</th><th class="n">Qty</th><th class="n">Total amount</th><th class="n">Paid</th><th class="n">Balance</th></tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot>
+        <tr><td colspan="6">TOTAL INCOME</td><td class="n g">${money(inc)}</td><td class="n">${money(got)}</td><td class="n ${due?'r':''}">${due?money(due):'—'}</td></tr>
+        <tr class="mid"><td colspan="6">TOTAL EXPENSE</td><td class="n r">− ${money(exp)}</td><td class="n">${money(paid)}</td><td class="n ${owe?'r':''}">${owe?money(owe):'—'}</td></tr>
+        <tr class="mid"><td colspan="6">NET (billed)</td><td class="n" colspan="3">${inc-exp<0?'− ':''}${money(Math.abs(inc-exp))}</td></tr>
+        <tr><td colspan="6">RECEIVED − PAID (cash in hand)</td><td class="n" colspan="3">${got-paid<0?'− ':''}${money(Math.abs(got-paid))}</td></tr>
+      </tfoot>
+    </table>
+    <div class="foot">Generated ${esc(today())} · Ansar Business app</div>
+  </body></html>`;
+}
+function rpPdf(){
+  const rows = rpRows().slice().sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
+  if(!rows.length){ toast('Nothing to print'); return; }
+  const f = document.createElement('iframe');
+  f.setAttribute('aria-hidden','true');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+  document.body.appendChild(f);
+  const doc = f.contentWindow.document;
+  doc.open(); doc.write(rpHtml(rows)); doc.close();
+  setTimeout(() => {
+    try { f.contentWindow.focus(); f.contentWindow.print(); }
+    catch(err){ toast('Could not open print view'); }
+    setTimeout(() => f.remove(), 60000);
+  }, 400);
+  toast('Choose "Save as PDF" in the print screen');
+}
 function rpExport(){
   const rows = rpRows();
   if(!rows.length){ toast('Nothing to export'); return; }
@@ -1270,7 +1348,7 @@ function rpExport(){
   toast('Report downloaded');
 }
 function csvDownload(list, name){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','MATERIAL','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
   const rows = list.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(name, [head.join(','),...rows].join('\n'), 'text/csv');

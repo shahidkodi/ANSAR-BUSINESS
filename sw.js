@@ -1,4 +1,4 @@
-const CACHE = 'ansar-business-v22';
+const CACHE = 'ansar-business-v24';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
