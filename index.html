@@ -337,6 +337,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <button class="item" onclick="go('d-agents')"><svg class="ic"><use href="#i-person"/></svg>Quarry income by agent</button>
   <button class="item" onclick="go('d-last')"><svg class="ic"><use href="#i-list"/></svg>Last entries</button>
   <button class="item" onclick="go('veh')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</button>
+  <button class="item" onclick="go('report')"><svg class="ic"><use href="#i-chart"/></svg>Vehicle report</button>
 </aside>
 
 <div class="topbar">
@@ -565,6 +566,51 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
 </div>
 
+<!-- ================= VEHICLE REPORT ================= -->
+<div class="page" id="page-report">
+  <div class="pcap"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle report</div>
+  <div class="filters">
+    <select id="rpVehicle"></select>
+    <select id="rpSrc"><option value="">Both ledgers</option><option value="Q">Quarry only</option><option value="VEH">Vehicle only</option></select>
+  </div>
+  <div class="filters">
+    <input type="date" id="rpFrom" title="From date">
+    <input type="date" id="rpTo" title="To date">
+  </div>
+  <div class="filters">
+    <button class="btn" style="width:auto;flex:1;padding:10px" onclick="rpQuick(7)">Last 7 days</button>
+    <button class="btn ghost" style="width:auto;flex:1;padding:10px" onclick="rpQuick(30)">30 days</button>
+    <button class="btn ghost" style="width:auto;flex:1;padding:10px" onclick="rpQuick(0)">All</button>
+  </div>
+
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-exc"/></svg>Quarry ledger</div>
+    <div class="row"><span class="lbl">Income</span><span class="val" id="rpQIn">₹0</span></div>
+    <div class="row"><span class="lbl">Expense</span><span class="val" id="rpQOut">₹0</span></div>
+    <div class="row net"><span class="lbl">Net</span><span class="val" id="rpQNet">₹0</span></div>
+    <div class="row"><span class="lbl">Pending</span><span class="val sm" id="rpQPend">₹0</span></div>
+  </div>
+
+  <div class="ledger veh num">
+    <div class="lhead"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</div>
+    <div class="row"><span class="lbl">Income</span><span class="val" id="rpVIn">₹0</span></div>
+    <div class="row"><span class="lbl">Expense</span><span class="val" id="rpVOut">₹0</span></div>
+    <div class="row net"><span class="lbl">Net</span><span class="val" id="rpVNet">₹0</span></div>
+    <div class="row"><span class="lbl">Pending</span><span class="val sm" id="rpVPend">₹0</span></div>
+  </div>
+
+  <div class="card num" id="rpByVehCard">
+    <h2><svg class="ic"><use href="#i-lorry"/></svg>Vehicle-wise summary</h2>
+    <div id="rpByVeh"></div>
+  </div>
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="rpExport()">Download report (CSV)</button>
+  </div>
+
+  <div id="rpList"></div>
+</div>
+
 <!-- ================= MANAGE ================= -->
 <div class="page" id="page-manage">
   <div class="card">
@@ -736,6 +782,7 @@ function showPage(p){
   if(p==='dash') renderDash();
   if(p==='entry') mountForm('Q');
   if(p==='veh'){ mountForm('VEH'); refreshFormSelects(); }
+  if(p==='report') renderReport();
   if(p==='list') renderList();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
@@ -774,15 +821,20 @@ function expGroup(cat){
      c.includes('SERVICE') || c.includes('REPAIR') || c.includes('INSURANCE') || c.includes('TAX') || c.includes('PERMIT') || c.includes('SPARE')) return 'VEH';
   return 'BOTH';
 }
+function isCashCat(c){ const C=(c||'').toUpperCase(); return C.includes('QUARRY CASH') || C.includes('VEHICLE CASH') || C.includes('LORRY CASH'); }
+function sectionCats(){
+  // Quarry: no vehicle categories at all, except cash paid to a lorry.  Vehicles: no machine categories.
+  return db.expenseCats.filter(c => {
+    const g = expGroup(c);
+    if(formSection === 'VEH') return g !== 'MACH';
+    return !isCashCat(c) && g !== 'VEH';
+  });
+}
 function expSubjects(){
   const cat = $('fExpCat').value || '';
-  const C = cat.toUpperCase();
   let g = expGroup(cat);
-  // Quarry section: vehicle categories aren't filtered to vehicles, except cash paid to a lorry
-  if(formSection !== 'VEH'){
-    if(C.includes('QUARRY CASH') || C.includes('VEHICLE CASH') || C==='VEHICLE' || C.includes('LORRY')) g = 'VEH';
-    else if(g === 'VEH') g = 'BOTH';
-  }
+  if(isCashCat(cat)) g = 'VEH';
+  else if(formSection !== 'VEH' && g === 'VEH') g = 'BOTH';
   const emp = db.employees.map(e=>e.name);
   const all = formSection==='VEH' ? [...emp, ...db.vehicles, ...db.machines] : [...emp, ...db.machines];
   const list = g==='MACH' ? db.machines : (g==='VEH' ? db.vehicles : (g==='EMP' ? emp : all));
@@ -790,7 +842,7 @@ function expSubjects(){
   fillKeepValue($('fEmployee'), list);
   if(ctype==='EXPENSE'){
     const C = cat.toUpperCase();
-    const material = C==='VEHICLE' || C.includes('MATERIAL') || C.includes('LOAD');
+    const material = C==='VEHICLE' || isCashCat(cat) || C.includes('MATERIAL') || C.includes('LOAD');
     $('rowQuality').style.display = material ? '' : 'none';
     $('rowQtyRate').style.display = material ? '' : 'none';
     $('rowAuto').style.display    = material ? '' : 'none';
@@ -803,7 +855,7 @@ function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
   fillKeepValue($('fVehicle'), db.vehicles);
   fillKeepValue($('fAgent'), db.agents, '— none —');
-  fillKeepValue($('fExpCat'), db.expenseCats);
+  fillKeepValue($('fExpCat'), sectionCats());
   fillKeepValue($('fQuality'), db.qualities);
   fillKeepValue($('fQType'), db.qualityTypes);
   expSubjects();
@@ -894,6 +946,8 @@ function mountForm(sec){
   if(sec !== formSection && editId){ editId = null; clearForm(); }
   formSection = sec;
   $(sec==='VEH' ? 'vehHost' : 'entryHost').appendChild($('entryForm'));
+  fillKeepValue($('fExpCat'), sectionCats());
+  if(ctype==='EXPENSE') expSubjects();
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
@@ -1163,13 +1217,65 @@ function exportJSON(){
   download(`ansar-backup-${today()}.json`, JSON.stringify(db,null,2), 'application/json');
   toast('Backup downloaded');
 }
-function exportCSV(){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
-  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
-    .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
-  download(`ansar-entries-${today()}.csv`, [head.join(','),...rows].join('\n'), 'text/csv');
-  toast('CSV downloaded');
+function rpQuick(days){
+  if(!days){ $('rpFrom').value=''; $('rpTo').value=''; }
+  else {
+    $('rpTo').value = today();
+    $('rpFrom').value = new Date(Date.now()-(days-1)*86400000).toISOString().slice(0,10);
+  }
+  renderReport();
 }
+['rpVehicle','rpSrc','rpFrom','rpTo'].forEach(id => $(id).addEventListener('change', renderReport));
+function rpRows(){
+  fillKeepValue($('rpVehicle'), db.vehicles, 'All vehicles');
+  const v=$('rpVehicle').value, sec=$('rpSrc').value, from=$('rpFrom').value, to=$('rpTo').value;
+  return db.entries.filter(e =>
+    db.vehicles.includes(e.subject) &&
+    (!v || e.subject===v) &&
+    (!sec || (sec==='VEH' ? e.src==='VEH' : e.src!=='VEH')) &&
+    (!from || e.date>=from) && (!to || e.date<=to))
+    .sort((a,b) => ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
+}
+function renderReport(){
+  const rows = rpRows();
+  const L = () => ({i:0,o:0,p:0});
+  const q=L(), v=L(), per={};
+  rows.forEach(e => {
+    const t = e.src==='VEH' ? v : q;
+    const pv = per[e.subject] || (per[e.subject] = {qi:0,qo:0,vi:0,vo:0});
+    if(e.ctype==='INCOME'){ t.i+=e.amount; if(e.src==='VEH') pv.vi+=e.amount; else pv.qi+=e.amount; }
+    else { t.o+=e.amount; if(e.src==='VEH') pv.vo+=e.amount; else pv.qo+=e.amount; }
+    if(e.status==='PENDING') t.p += e.balance;
+  });
+  $('rpQIn').textContent=fmt(q.i); $('rpQOut').textContent=fmt(q.o);
+  $('rpQNet').textContent=sfmt(q.i-q.o); $('rpQPend').textContent=fmt(q.p);
+  $('rpVIn').textContent=fmt(v.i); $('rpVOut').textContent=fmt(v.o);
+  $('rpVNet').textContent=sfmt(v.i-v.o); $('rpVPend').textContent=fmt(v.p);
+  const ks = Object.keys(per).sort((a,b)=>((per[b].qi-per[b].qo)+(per[b].vi-per[b].vo))-((per[a].qi-per[a].qo)+(per[a].vi-per[a].vo)));
+  $('rpByVehCard').style.display = ks.length>1 ? '' : 'none';
+  $('rpByVeh').innerHTML = ks.map(k => {
+    const p=per[k], n=(p.qi-p.qo)+(p.vi-p.vo);
+    return `<div class="bar tap" data-v="${esc(k)}" onclick="rpPick(this.dataset.v)"><span class="bic">${icon('i-lorry')}</span><span class="name">${esc(k)}<div class="sub2">Quarry ${sfmt(p.qi-p.qo)} · Vehicle ${sfmt(p.vi-p.vo)}</div></span><span class="amt ${n>=0?'g':'r'}">${sfmt(n)}</span></div>`;
+  }).join('');
+  $('rpList').innerHTML = rows.length ? rows.map(entryCard).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No entries for this vehicle and period.</div>`;
+}
+function rpPick(v){ $('rpVehicle').value=v; renderReport(); window.scrollTo(0,0); }
+function rpExport(){
+  const rows = rpRows();
+  if(!rows.length){ toast('Nothing to export'); return; }
+  const v = $('rpVehicle').value || 'all-vehicles';
+  const period = [$('rpFrom').value||'start', $('rpTo').value||today()].join('_to_');
+  csvDownload(rows, `ansar-report-${v.replace(/\s+/g,'')}-${period}.csv`);
+  toast('Report downloaded');
+}
+function csvDownload(list, name){
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
+  const rows = list.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
+    .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
+  download(name, [head.join(','),...rows].join('\n'), 'text/csv');
+}
+function exportCSV(){ csvDownload(db.entries, `ansar-entries-${today()}.csv`); toast('CSV downloaded'); }
 function importJSON(input){
   const f = input.files[0]; if(!f) return;
   const r = new FileReader();
