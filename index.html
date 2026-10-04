@@ -484,12 +484,14 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <div class="field"><label for="fAddress">Address / Place</label><input id="fAddress" placeholder="e.g. Mongam"></div>
     </div>
 
-    <div id="rowQtyRate">
+    <div class="grid2" id="rowQuality">
       <div class="field"><label for="fQuality">Quality / material</label><select id="fQuality"></select></div>
-      <div class="grid2">
-        <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal" placeholder="275"></div>
-        <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
-      </div>
+      <div class="field"><label for="fQType">Quality type</label><select id="fQType"></select></div>
+    </div>
+
+    <div class="grid2" id="rowQtyRate">
+      <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal" placeholder="275"></div>
+      <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
     </div>
 
     <div class="autoamt num" id="rowAuto"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Auto amount (Qty × Rate)</span><span class="val" id="fAutoAmt">₹0</span></div>
@@ -553,6 +555,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <li onclick="showPage('m-vehicles')"><span class="lic"><svg class="ic"><use href="#i-lorry"/></svg></span><span class="nm">Vehicles</span><span class="cnt" id="cVehicles"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-employees')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Employees</span><span class="cnt" id="cEmployees"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-agents')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Agents</span><span class="cnt" id="cAgents"></span><span class="chev">›</span></li>
+      <li onclick="showPage('m-machines')"><span class="lic"><svg class="ic"><use href="#i-exc"/></svg></span><span class="nm">Machines / assets</span><span class="cnt" id="cMach"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-quality')"><span class="lic"><svg class="ic"><use href="#i-land"/></svg></span><span class="nm">Quality / material</span><span class="cnt" id="cQual"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-cats')"><span class="lic"><svg class="ic"><use href="#i-cash"/></svg></span><span class="nm">Expense categories</span><span class="cnt" id="cCats"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-backup')"><span class="lic"><svg class="ic"><use href="#i-save"/></svg></span><span class="nm">Backup &amp; export</span><span class="chev">›</span></li>
@@ -601,11 +604,24 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 </div>
 
+<div class="page" id="page-m-machines">
+  <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Machines / assets <svg class="ic"><use href="#i-exc"/></svg></span></div>
+  <div class="card">
+    <ul class="mlist" id="mMach"></ul>
+    <div class="addrow"><input id="addMach" placeholder="e.g. EXCAVATOR 2, TRACTOR"><button class="btn" onclick="addMaster('machines','addMach')">Add</button></div>
+  </div>
+</div>
+
 <div class="page" id="page-m-quality">
   <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Quality / material <svg class="ic"><use href="#i-land"/></svg></span></div>
   <div class="card">
     <ul class="mlist" id="mQual"></ul>
     <div class="addrow"><input id="addQual" placeholder="e.g. METAL 40MM"><button class="btn" onclick="addMaster('qualities','addQual')">Add</button></div>
+  </div>
+  <div class="card">
+    <h2><svg class="ic"><use href="#i-chart"/></svg>Quality types</h2>
+    <ul class="mlist" id="mQType"></ul>
+    <div class="addrow"><input id="addQType" placeholder="e.g. FOURTH QUALITY"><button class="btn" onclick="addMaster('qualityTypes','addQType')">Add</button></div>
   </div>
 </div>
 
@@ -639,7 +655,9 @@ const seed = {
     {name:'RAMZI', contact:'', type:'OTHER'}
   ],
   agents: ['SHAHIN'],
-  expenseCats: ['FUEL','SALARY','AD PAY','OTHER'],
+  expenseCats: ['VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
+  machines: ['EXCAVATOR 1','BREAKER','JCB'],
+  qualityTypes: ['FIRST QUALITY','SECOND QUALITY','THIRD QUALITY'],
   qualities: ['M SAND','P SAND','METAL 12MM','METAL 20MM','DUST','ROCK','SOIL'],
   entries: []
 };
@@ -647,6 +665,9 @@ let db;
 try { db = JSON.parse(localStorage.getItem(KEY)) || structuredClone(seed); }
 catch(e){ db = structuredClone(seed); }
 if(!db.qualities) db.qualities = structuredClone(seed.qualities);
+if(!db.machines) db.machines = structuredClone(seed.machines);
+if(!db.qualityTypes) db.qualityTypes = structuredClone(seed.qualityTypes);
+seed.expenseCats.forEach(c => { if(!db.expenseCats.includes(c)) db.expenseCats.push(c); });
 function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
 
 let editId = null;
@@ -674,6 +695,7 @@ function catIcon(e){
   if(e.info==='SALARY') return 'i-wallet';
   if(e.info==='AD PAY') return 'i-cash';
   if(db.vehicles.includes(e.subject)) return 'i-lorry';
+  if((db.machines||[]).includes(e.subject)) return 'i-exc';
   return 'i-cash';
 }
 function fillSelect(sel, items, blankLabel){
@@ -713,26 +735,35 @@ function setType(t){
   const inc = t==='INCOME';
   $('rowVehicle').style.display = inc?'':'none';
   $('rowAgentAddr').style.display = inc?'':'none';
-  $('rowQtyRate').style.display = inc?'':'none';
-  $('rowAuto').style.display = inc?'':'none';
+  $('rowQtyRate').style.display = '';
+  $('rowAuto').style.display = '';
+  $('rowQuality').style.display = inc ? '' : 'none';
   $('rowExpCat').style.display = inc?'none':'';
   $('rowEmployee').style.display = inc?'none':'';
+  if(!inc) expSubjects();
   $('lblCash').textContent = inc ? 'Total amount ₹' : 'Expense amount ₹';
   $('lblAdv').textContent = inc ? 'Received now ₹' : 'Paid now ₹';
   calc();
 }
-const EXP_FOR = {
-  'FUEL':'VEH', 'SERVICE':'VEH', 'TYRE':'VEH', 'REPAIR':'VEH', 'INSURANCE':'VEH',
-  'TAX':'VEH', 'TAX / PERMIT':'VEH', 'PERMIT':'VEH', 'SPARE':'VEH',
-  'SALARY':'EMP', 'AD PAY':'EMP', 'ADVANCE':'EMP', 'BATA':'EMP', 'DRIVER BATA':'EMP', 'COOLIE':'EMP'
-};
+function expGroup(cat){
+  const c = (cat||'').toUpperCase();
+  if(c.includes('MACHINE') || c.includes('EXCAVATOR') || c.includes('JCB') || c.includes('BREAKER')) return 'MACH';
+  if(c.includes('SALARY') || c.includes('ADVANCE') || c.includes('BATA') || c.includes('COOLIE') || c.includes('WAGE') || c.includes('AD PAY')) return 'EMP';
+  if(c.includes('VEHICLE') || c.includes('LORRY') || c.includes('TIPPER') || c.includes('FUEL') || c.includes('TYRE') ||
+     c.includes('SERVICE') || c.includes('REPAIR') || c.includes('INSURANCE') || c.includes('TAX') || c.includes('PERMIT') || c.includes('SPARE')) return 'VEH';
+  return 'BOTH';
+}
 function expSubjects(){
   const cat = $('fExpCat').value || '';
-  const g = EXP_FOR[cat.toUpperCase()] || 'BOTH';
+  const g = expGroup(cat);
   const emp = db.employees.map(e=>e.name);
-  const list = g==='VEH' ? db.vehicles : (g==='EMP' ? emp : [...emp, ...db.vehicles]);
-  $('lblEmployee').textContent = g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : 'Employee / Vehicle');
+  const list = g==='MACH' ? db.machines : (g==='VEH' ? db.vehicles : (g==='EMP' ? emp : [...emp, ...db.vehicles, ...db.machines]));
+  $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : 'Employee / Vehicle / Machine'));
   fillKeepValue($('fEmployee'), list);
+  if(ctype==='EXPENSE'){
+    const material = cat.toUpperCase()==='VEHICLE' || cat.toUpperCase().includes('MATERIAL') || cat.toUpperCase().includes('LOAD');
+    $('rowQuality').style.display = material ? '' : 'none';
+  }
 }
 function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
@@ -740,6 +771,7 @@ function refreshFormSelects(){
   fillKeepValue($('fAgent'), db.agents, '— none —');
   fillKeepValue($('fExpCat'), db.expenseCats);
   fillKeepValue($('fQuality'), db.qualities);
+  fillKeepValue($('fQType'), db.qualityTypes);
   expSubjects();
   if(!$('fDate').value) $('fDate').value = today();
   if(!$('fTime').value) $('fTime').value = nowTime();
@@ -750,7 +782,7 @@ $('fExpCat').addEventListener('change', expSubjects);
 function autoFill(){
   const qty = +$('fQty').value||0, rate = +$('fRate').value||0;
   const auto = qty*rate;
-  if(ctype==='INCOME' && auto>0) $('fCash').value = auto;
+  if(auto>0) $('fCash').value = auto;
   calc();
 }
 function calc(){
@@ -774,7 +806,8 @@ $('btnSave').addEventListener('click', () => {
     info: inc ? 'VEHICLE' : $('fExpCat').value,
     agent: inc ? $('fAgent').value : '',
     address: inc ? $('fAddress').value.trim() : '',
-    quality: $('fQuality').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
+    quality: $('rowQuality').style.display==='none' ? '' : $('fQuality').value,
+    qtype: $('rowQuality').style.display==='none' ? '' : $('fQType').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
     amount: cash, advance: adv, balance: bal,
     mode: $('fMode').value, next: $('fNext').value || '',
     status: bal>0 ? 'PENDING' : 'CLOSED'
@@ -845,7 +878,7 @@ function entryCard(e){ return `
             <span class="amt">${e.ctype==='INCOME'?'+':'−'} ${fmt(e.amount)}</span>
           </div>
           <div class="meta">
-            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && e.info!=='VEHICLE' ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
+            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
           </div>
           <div class="tags">
             <span class="tag ${e.status==='PENDING'?'pending':'closed'}">${e.status}</span>
@@ -884,7 +917,8 @@ function editEntry(id){
     if(e.subject && ![...$('fEmployee').options].some(o=>o.value===e.subject)) $('fEmployee').insertAdjacentHTML('beforeend', `<option>${esc(e.subject)}</option>`);
     $('fEmployee').value=e.subject;
   }
-  if(e.quality) $('fQuality').value=e.quality; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
+  if(e.quality) $('fQuality').value=e.quality;
+  if(e.qtype) $('fQType').value=e.qtype; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
   $('fCash').value=e.amount;
   $('fAdvance').value=e.advance||''; $('fNext').value=e.next||''; $('fMode').value=e.mode||'GPAY';
   calc();
@@ -1020,6 +1054,7 @@ function renderMenu(){
   $('cAgents').textContent = db.agents.length;
   $('cCats').textContent = db.expenseCats.length;
   $('cQual').textContent = db.qualities.length;
+  $('cMach').textContent = db.machines.length;
 }
 function renderManage(){
   const li = (ic,label, sub, onDel) => `<li><span class="lic">${icon(ic)}</span><span class="nm">${label}${sub?`<div class="sub">${sub}</div>`:''}</span><button onclick="${onDel}">Remove</button></li>`;
@@ -1027,6 +1062,8 @@ function renderManage(){
   $('mVehicles').innerHTML = db.vehicles.map((s,i)=>li('i-lorry',esc(s),'',`delMaster('vehicles',${i})`)).join('');
   $('mAgents').innerHTML = db.agents.map((s,i)=>li('i-person',esc(s),'',`delMaster('agents',${i})`)).join('');
   $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`)).join('');
+  $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`)).join('');
+  $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`)).join('');
   $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`)).join('');
   $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
 }
@@ -1059,8 +1096,8 @@ function exportJSON(){
   toast('Backup downloaded');
 }
 function exportCSV(){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
-  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
+  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(`ansar-entries-${today()}.csv`, [head.join(','),...rows].join('\n'), 'text/csv');
   toast('CSV downloaded');
