@@ -477,20 +477,22 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="field" id="rowVehicle"><label for="fVehicle">Vehicle</label><select id="fVehicle"></select></div>
 
     <div class="field" id="rowExpCat" style="display:none"><label for="fExpCat">Expense type</label><select id="fExpCat"></select></div>
-    <div class="field" id="rowEmployee" style="display:none"><label for="fEmployee">Employee / Vehicle</label><select id="fEmployee"></select></div>
+    <div class="field" id="rowEmployee" style="display:none"><label for="fEmployee" id="lblEmployee">Employee / Vehicle</label><select id="fEmployee"></select></div>
 
     <div class="grid2" id="rowAgentAddr">
       <div class="field"><label for="fAgent">Agent</label><select id="fAgent"></select></div>
       <div class="field"><label for="fAddress">Address / Place</label><input id="fAddress" placeholder="e.g. Mongam"></div>
     </div>
 
-    <div class="grid3" id="rowQtyRate">
-      <div class="field"><label for="fItem">Loads</label><input type="number" id="fItem" inputmode="numeric" placeholder="1"></div>
-      <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal" placeholder="275"></div>
-      <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
+    <div id="rowQtyRate">
+      <div class="field"><label for="fQuality">Quality / material</label><select id="fQuality"></select></div>
+      <div class="grid2">
+        <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal" placeholder="275"></div>
+        <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
+      </div>
     </div>
 
-    <div class="autoamt num" id="rowAuto"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Auto amount (Loads × Qty × Rate)</span><span class="val" id="fAutoAmt">₹0</span></div>
+    <div class="autoamt num" id="rowAuto"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Auto amount (Qty × Rate)</span><span class="val" id="fAutoAmt">₹0</span></div>
 
     <div class="grid2">
       <div class="field"><label for="fCash" id="lblCash">Total amount ₹</label><input type="number" id="fCash" inputmode="decimal"></div>
@@ -551,6 +553,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <li onclick="showPage('m-vehicles')"><span class="lic"><svg class="ic"><use href="#i-lorry"/></svg></span><span class="nm">Vehicles</span><span class="cnt" id="cVehicles"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-employees')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Employees</span><span class="cnt" id="cEmployees"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-agents')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Agents</span><span class="cnt" id="cAgents"></span><span class="chev">›</span></li>
+      <li onclick="showPage('m-quality')"><span class="lic"><svg class="ic"><use href="#i-land"/></svg></span><span class="nm">Quality / material</span><span class="cnt" id="cQual"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-cats')"><span class="lic"><svg class="ic"><use href="#i-cash"/></svg></span><span class="nm">Expense categories</span><span class="cnt" id="cCats"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-backup')"><span class="lic"><svg class="ic"><use href="#i-save"/></svg></span><span class="nm">Backup &amp; export</span><span class="chev">›</span></li>
     </ul>
@@ -598,6 +601,14 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 </div>
 
+<div class="page" id="page-m-quality">
+  <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Quality / material <svg class="ic"><use href="#i-land"/></svg></span></div>
+  <div class="card">
+    <ul class="mlist" id="mQual"></ul>
+    <div class="addrow"><input id="addQual" placeholder="e.g. METAL 40MM"><button class="btn" onclick="addMaster('qualities','addQual')">Add</button></div>
+  </div>
+</div>
+
 <div class="page" id="page-m-backup">
   <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Backup &amp; export <svg class="ic"><use href="#i-save"/></svg></span></div>
   <div class="card">
@@ -629,11 +640,13 @@ const seed = {
   ],
   agents: ['SHAHIN'],
   expenseCats: ['FUEL','SALARY','AD PAY','OTHER'],
+  qualities: ['M SAND','P SAND','METAL 12MM','METAL 20MM','DUST','ROCK','SOIL'],
   entries: []
 };
 let db;
 try { db = JSON.parse(localStorage.getItem(KEY)) || structuredClone(seed); }
 catch(e){ db = structuredClone(seed); }
+if(!db.qualities) db.qualities = structuredClone(seed.qualities);
 function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
 
 let editId = null;
@@ -708,26 +721,41 @@ function setType(t){
   $('lblAdv').textContent = inc ? 'Received now ₹' : 'Paid now ₹';
   calc();
 }
+const EXP_FOR = {
+  'FUEL':'VEH', 'SERVICE':'VEH', 'TYRE':'VEH', 'REPAIR':'VEH', 'INSURANCE':'VEH',
+  'TAX':'VEH', 'TAX / PERMIT':'VEH', 'PERMIT':'VEH', 'SPARE':'VEH',
+  'SALARY':'EMP', 'AD PAY':'EMP', 'ADVANCE':'EMP', 'BATA':'EMP', 'DRIVER BATA':'EMP', 'COOLIE':'EMP'
+};
+function expSubjects(){
+  const cat = $('fExpCat').value || '';
+  const g = EXP_FOR[cat.toUpperCase()] || 'BOTH';
+  const emp = db.employees.map(e=>e.name);
+  const list = g==='VEH' ? db.vehicles : (g==='EMP' ? emp : [...emp, ...db.vehicles]);
+  $('lblEmployee').textContent = g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : 'Employee / Vehicle');
+  fillKeepValue($('fEmployee'), list);
+}
 function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
   fillKeepValue($('fVehicle'), db.vehicles);
   fillKeepValue($('fAgent'), db.agents, '— none —');
   fillKeepValue($('fExpCat'), db.expenseCats);
-  fillKeepValue($('fEmployee'), [...db.employees.map(e=>e.name), ...db.vehicles]);
+  fillKeepValue($('fQuality'), db.qualities);
+  expSubjects();
   if(!$('fDate').value) $('fDate').value = today();
   if(!$('fTime').value) $('fTime').value = nowTime();
 }
-['fItem','fQty','fRate'].forEach(id => $(id).addEventListener('input', autoFill));
+['fQty','fRate'].forEach(id => $(id).addEventListener('input', autoFill));
+$('fExpCat').addEventListener('change', expSubjects);
 ['fCash','fAdvance'].forEach(id => $(id).addEventListener('input', calc));
 function autoFill(){
-  const loads = +$('fItem').value||1, qty = +$('fQty').value||0, rate = +$('fRate').value||0;
-  const auto = loads*qty*rate;
+  const qty = +$('fQty').value||0, rate = +$('fRate').value||0;
+  const auto = qty*rate;
   if(ctype==='INCOME' && auto>0) $('fCash').value = auto;
   calc();
 }
 function calc(){
-  const loads = +$('fItem').value||1, qty = +$('fQty').value||0, rate = +$('fRate').value||0;
-  $('fAutoAmt').textContent = fmt(loads*qty*rate);
+  const qty = +$('fQty').value||0, rate = +$('fRate').value||0;
+  $('fAutoAmt').textContent = fmt(qty*rate);
   const cash = +$('fCash').value||0, adv = +$('fAdvance').value||0;
   $('fBalance').textContent = fmt(cash-adv);
 }
@@ -746,7 +774,7 @@ $('btnSave').addEventListener('click', () => {
     info: inc ? 'VEHICLE' : $('fExpCat').value,
     agent: inc ? $('fAgent').value : '',
     address: inc ? $('fAddress').value.trim() : '',
-    item: +$('fItem').value||null, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
+    quality: $('fQuality').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
     amount: cash, advance: adv, balance: bal,
     mode: $('fMode').value, next: $('fNext').value || '',
     status: bal>0 ? 'PENDING' : 'CLOSED'
@@ -773,7 +801,7 @@ function mountForm(sec){
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
-  ['fAddress','fItem','fQty','fRate','fCash','fAdvance','fNext'].forEach(id => $(id).value='');
+  ['fAddress','fQty','fRate','fCash','fAdvance','fNext'].forEach(id => $(id).value='');
   $('fDate').value = today();
   $('fTime').value = nowTime();
   $('editHint').style.display='none';
@@ -817,7 +845,7 @@ function entryCard(e){ return `
             <span class="amt">${e.ctype==='INCOME'?'+':'−'} ${fmt(e.amount)}</span>
           </div>
           <div class="meta">
-            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && e.info!=='VEHICLE' ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.qty ? ` · ${e.item||1} × ${e.qty} × ${e.rate}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
+            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && e.info!=='VEHICLE' ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
           </div>
           <div class="tags">
             <span class="tag ${e.status==='PENDING'?'pending':'closed'}">${e.status}</span>
@@ -852,9 +880,11 @@ function editEntry(id){
   if(e.ctype==='INCOME'){ $('fVehicle').value=e.subject; $('fAgent').value=e.agent||''; $('fAddress').value=e.address||''; }
   else {
     if(e.info && ![...$('fExpCat').options].some(o=>o.value===e.info)) $('fExpCat').insertAdjacentHTML('beforeend', `<option>${esc(e.info)}</option>`);
-    $('fExpCat').value=e.info; $('fEmployee').value=e.subject;
+    $('fExpCat').value=e.info; expSubjects();
+    if(e.subject && ![...$('fEmployee').options].some(o=>o.value===e.subject)) $('fEmployee').insertAdjacentHTML('beforeend', `<option>${esc(e.subject)}</option>`);
+    $('fEmployee').value=e.subject;
   }
-  $('fItem').value=e.item||''; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
+  if(e.quality) $('fQuality').value=e.quality; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
   $('fCash').value=e.amount;
   $('fAdvance').value=e.advance||''; $('fNext').value=e.next||''; $('fMode').value=e.mode||'GPAY';
   calc();
@@ -989,6 +1019,7 @@ function renderMenu(){
   $('cEmployees').textContent = db.employees.length;
   $('cAgents').textContent = db.agents.length;
   $('cCats').textContent = db.expenseCats.length;
+  $('cQual').textContent = db.qualities.length;
 }
 function renderManage(){
   const li = (ic,label, sub, onDel) => `<li><span class="lic">${icon(ic)}</span><span class="nm">${label}${sub?`<div class="sub">${sub}</div>`:''}</span><button onclick="${onDel}">Remove</button></li>`;
@@ -996,6 +1027,7 @@ function renderManage(){
   $('mVehicles').innerHTML = db.vehicles.map((s,i)=>li('i-lorry',esc(s),'',`delMaster('vehicles',${i})`)).join('');
   $('mAgents').innerHTML = db.agents.map((s,i)=>li('i-person',esc(s),'',`delMaster('agents',${i})`)).join('');
   $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`)).join('');
+  $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`)).join('');
   $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
 }
 function addMaster(list, inputId){
@@ -1027,8 +1059,8 @@ function exportJSON(){
   toast('Backup downloaded');
 }
 function exportCSV(){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','LOADS','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
-  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.item,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
+  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(`ansar-entries-${today()}.csv`, [head.join(','),...rows].join('\n'), 'text/csv');
   toast('CSV downloaded');
