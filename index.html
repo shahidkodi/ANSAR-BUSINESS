@@ -494,6 +494,23 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
     </div>
 
+    <div id="rowOT" style="display:none">
+      <div class="grid2">
+        <div class="field"><label for="fWkFrom">Week from</label><input type="date" id="fWkFrom"></div>
+        <div class="field"><label for="fWkTo">Week to</label><input type="date" id="fWkTo"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="fDays">Days worked</label><input type="number" id="fDays" inputmode="decimal" placeholder="6" step="0.5"></div>
+        <div class="field"><label for="fDayRate">Daily wage ₹</label><input type="number" id="fDayRate" inputmode="decimal" placeholder="900"></div>
+      </div>
+      <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Wage (Days × Daily wage)</span><span class="val" id="fWageAmt">₹0</span></div>
+      <div class="grid2">
+        <div class="field"><label for="fOtHrs">Overtime hours</label><input type="number" id="fOtHrs" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label for="fOtRate">OT rate / hour ₹</label><input type="number" id="fOtRate" inputmode="decimal" placeholder="0"></div>
+      </div>
+      <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Overtime amount</span><span class="val" id="fOtAmt">₹0</span></div>
+    </div>
+
     <div class="autoamt num" id="rowAuto"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Auto amount (Qty × Rate)</span><span class="val" id="fAutoAmt">₹0</span></div>
 
     <div class="grid2">
@@ -584,6 +601,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mEmployees"></ul>
     <div class="addrow"><input id="addEmpName" placeholder="Name" style="flex:1.2"><input id="addEmpContact" placeholder="Contact" inputmode="tel"><select id="addEmpType"><option>DRIVER</option><option>COOLIE</option><option>OPERATOR</option><option>OTHER</option></select></div>
+    <div class="addrow"><input id="addEmpDay" placeholder="Daily wage ₹" inputmode="decimal"><input id="addEmpOt" placeholder="OT ₹ / hour" inputmode="decimal"></div>
     <div class="addrow"><button class="btn" onclick="addEmployee()" style="width:100%">Add employee</button></div>
   </div>
 </div>
@@ -735,9 +753,10 @@ function setType(t){
   const inc = t==='INCOME';
   $('rowVehicle').style.display = inc?'':'none';
   $('rowAgentAddr').style.display = inc?'':'none';
-  $('rowQtyRate').style.display = '';
-  $('rowAuto').style.display = '';
+  $('rowQtyRate').style.display = inc ? '' : 'none';
+  $('rowAuto').style.display = inc ? '' : 'none';
   $('rowQuality').style.display = inc ? '' : 'none';
+  $('rowOT').style.display = 'none';
   $('rowExpCat').style.display = inc?'none':'';
   $('rowEmployee').style.display = inc?'none':'';
   if(!inc) expSubjects();
@@ -761,8 +780,14 @@ function expSubjects(){
   $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : 'Employee / Vehicle / Machine'));
   fillKeepValue($('fEmployee'), list);
   if(ctype==='EXPENSE'){
-    const material = cat.toUpperCase()==='VEHICLE' || cat.toUpperCase().includes('MATERIAL') || cat.toUpperCase().includes('LOAD');
+    const C = cat.toUpperCase();
+    const material = C==='VEHICLE' || C.includes('MATERIAL') || C.includes('LOAD');
     $('rowQuality').style.display = material ? '' : 'none';
+    $('rowQtyRate').style.display = material ? '' : 'none';
+    $('rowAuto').style.display    = material ? '' : 'none';
+    $('rowOT').style.display      = g==='EMP' ? '' : 'none';
+    if(g==='EMP') weekDefaults();
+    $('lblCash').textContent = g==='EMP' ? 'Total pay ₹' : 'Expense amount ₹';
   }
 }
 function refreshFormSelects(){
@@ -778,6 +803,27 @@ function refreshFormSelects(){
 }
 ['fQty','fRate'].forEach(id => $(id).addEventListener('input', autoFill));
 $('fExpCat').addEventListener('change', expSubjects);
+['fDays','fDayRate','fOtHrs','fOtRate'].forEach(id => $(id).addEventListener('input', otCalc));
+$('fEmployee').addEventListener('change', () => {
+  const emp = db.employees.find(x => x.name === $('fEmployee').value);
+  if(!emp) return;
+  if(emp.dayRate && !$('fDayRate').value) $('fDayRate').value = emp.dayRate;
+  if(emp.otRate && !$('fOtRate').value) $('fOtRate').value = emp.otRate;
+  otCalc();
+});
+function weekDefaults(){
+  if(!$('fWkTo').value) $('fWkTo').value = today();
+  if(!$('fWkFrom').value) $('fWkFrom').value = new Date(Date.now()-6*86400000).toISOString().slice(0,10);
+}
+function otCalc(){
+  const days = +$('fDays').value||0, dayRate = +$('fDayRate').value||0;
+  const hrs = +$('fOtHrs').value||0, otRate = +$('fOtRate').value||0;
+  const wage = days*dayRate, ot = hrs*otRate;
+  $('fWageAmt').textContent = fmt(wage);
+  $('fOtAmt').textContent = fmt(ot);
+  if(wage+ot > 0) $('fCash').value = wage+ot;
+  calc();
+}
 ['fCash','fAdvance'].forEach(id => $(id).addEventListener('input', calc));
 function autoFill(){
   const qty = +$('fQty').value||0, rate = +$('fRate').value||0;
@@ -806,6 +852,14 @@ $('btnSave').addEventListener('click', () => {
     info: inc ? 'VEHICLE' : $('fExpCat').value,
     agent: inc ? $('fAgent').value : '',
     address: inc ? $('fAddress').value.trim() : '',
+    days: $('rowOT').style.display==='none' ? null : (+$('fDays').value||null),
+    dayRate: $('rowOT').style.display==='none' ? null : (+$('fDayRate').value||null),
+    basic: $('rowOT').style.display==='none' ? null : ((+$('fDays').value||0)*(+$('fDayRate').value||0) || null),
+    wkFrom: $('rowOT').style.display==='none' ? '' : $('fWkFrom').value,
+    wkTo: $('rowOT').style.display==='none' ? '' : $('fWkTo').value,
+    otHrs: $('rowOT').style.display==='none' ? null : (+$('fOtHrs').value||null),
+    otRate: $('rowOT').style.display==='none' ? null : (+$('fOtRate').value||null),
+    otAmt: $('rowOT').style.display==='none' ? null : ((+$('fOtHrs').value||0)*(+$('fOtRate').value||0) || null),
     quality: $('rowQuality').style.display==='none' ? '' : $('fQuality').value,
     qtype: $('rowQuality').style.display==='none' ? '' : $('fQType').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
     amount: cash, advance: adv, balance: bal,
@@ -834,7 +888,8 @@ function mountForm(sec){
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
-  ['fAddress','fQty','fRate','fCash','fAdvance','fNext'].forEach(id => $(id).value='');
+  ['fAddress','fQty','fRate','fCash','fAdvance','fNext','fDays','fDayRate','fOtHrs','fOtRate','fWkFrom','fWkTo'].forEach(id => $(id).value='');
+  $('fOtAmt').textContent = fmt(0); $('fWageAmt').textContent = fmt(0);
   $('fDate').value = today();
   $('fTime').value = nowTime();
   $('editHint').style.display='none';
@@ -878,7 +933,7 @@ function entryCard(e){ return `
             <span class="amt">${e.ctype==='INCOME'?'+':'−'} ${fmt(e.amount)}</span>
           </div>
           <div class="meta">
-            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
+            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.days ? ` · ${e.days} days × ${e.dayRate}` : ''}${e.otAmt ? ` · OT ${e.otHrs}h × ${e.otRate} = ${fmt(e.otAmt)}` : ''}${e.wkFrom ? ` · week ${esc(e.wkFrom)} to ${esc(e.wkTo)}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
           </div>
           <div class="tags">
             <span class="tag ${e.status==='PENDING'?'pending':'closed'}">${e.status}</span>
@@ -917,6 +972,10 @@ function editEntry(id){
     if(e.subject && ![...$('fEmployee').options].some(o=>o.value===e.subject)) $('fEmployee').insertAdjacentHTML('beforeend', `<option>${esc(e.subject)}</option>`);
     $('fEmployee').value=e.subject;
   }
+  $('fDays').value=e.days||''; $('fDayRate').value=e.dayRate||'';
+  $('fWkFrom').value=e.wkFrom||''; $('fWkTo').value=e.wkTo||'';
+  $('fOtHrs').value=e.otHrs||''; $('fOtRate').value=e.otRate||'';
+  $('fWageAmt').textContent = fmt(e.basic||0); $('fOtAmt').textContent = fmt(e.otAmt||0);
   if(e.quality) $('fQuality').value=e.quality;
   if(e.qtype) $('fQType').value=e.qtype; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
   $('fCash').value=e.amount;
@@ -1065,7 +1124,7 @@ function renderManage(){
   $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`)).join('');
   $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`)).join('');
   $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`)).join('');
-  $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
+  $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact,e.dayRate?('₹'+e.dayRate+'/day'):'',e.otRate?('OT ₹'+e.otRate+'/hr'):''].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
 }
 function addMaster(list, inputId){
   const v = $(inputId).value.trim().toUpperCase();
@@ -1076,8 +1135,8 @@ function addMaster(list, inputId){
 function addEmployee(){
   const name = $('addEmpName').value.trim().toUpperCase();
   if(!name) return;
-  db.employees.push({name, contact:$('addEmpContact').value.trim(), type:$('addEmpType').value});
-  save(); $('addEmpName').value=''; $('addEmpContact').value=''; renderManage(); toast('Added');
+  db.employees.push({name, contact:$('addEmpContact').value.trim(), type:$('addEmpType').value, dayRate:+$('addEmpDay').value||null, otRate:+$('addEmpOt').value||null});
+  save(); $('addEmpName').value=''; $('addEmpContact').value=''; $('addEmpDay').value=''; $('addEmpOt').value=''; renderManage(); toast('Added');
 }
 function delMaster(list, i){
   if(!confirm('Remove this item? Old entries keep their value.')) return;
@@ -1096,8 +1155,8 @@ function exportJSON(){
   toast('Backup downloaded');
 }
 function exportCSV(){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
-  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
+  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(`ansar-entries-${today()}.csv`, [head.join(','),...rows].join('\n'), 'text/csv');
   toast('CSV downloaded');
