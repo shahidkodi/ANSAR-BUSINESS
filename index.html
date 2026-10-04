@@ -515,7 +515,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
     <div class="grid2">
       <div class="field"><label for="fCash" id="lblCash">Total amount ₹</label><input type="number" id="fCash" inputmode="decimal"></div>
-      <div class="field"><label for="fMode">Mode</label><select id="fMode"><option>GPAY</option><option>BY HAND</option><option>BANK</option></select></div>
+      <div class="field"><label for="fMode">Mode</label><select id="fMode"><option value=""></option><option>GPAY</option><option>BY HAND</option><option>BANK</option></select></div>
     </div>
 
     <div class="grid2">
@@ -524,6 +524,8 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </div>
 
     <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-cash"/></svg>Balance</span><span class="val" id="fBalance">₹0</span></div>
+
+    <div class="field"><label for="fRemarks">Remarks</label><input id="fRemarks" placeholder="Any note about this entry"></div>
 
     <button class="btn" id="btnSave">Save quarry entry</button>
     <p class="hint" id="editHint" style="display:none">Editing an existing entry. Saving will update it.</p>
@@ -673,7 +675,7 @@ const seed = {
     {name:'RAMZI', contact:'', type:'OTHER'}
   ],
   agents: ['SHAHIN'],
-  expenseCats: ['VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
+  expenseCats: ['QUARRY CASH','VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
   machines: ['EXCAVATOR 1','BREAKER','JCB'],
   qualityTypes: ['FIRST QUALITY','SECOND QUALITY','THIRD QUALITY'],
   qualities: ['M SAND','P SAND','METAL 12MM','METAL 20MM','DUST','ROCK','SOIL'],
@@ -774,10 +776,17 @@ function expGroup(cat){
 }
 function expSubjects(){
   const cat = $('fExpCat').value || '';
-  const g = expGroup(cat);
+  const C = cat.toUpperCase();
+  let g = expGroup(cat);
+  // Quarry section: vehicle categories aren't filtered to vehicles, except cash paid to a lorry
+  if(formSection !== 'VEH'){
+    if(C.includes('QUARRY CASH') || C.includes('VEHICLE CASH') || C==='VEHICLE' || C.includes('LORRY')) g = 'VEH';
+    else if(g === 'VEH') g = 'BOTH';
+  }
   const emp = db.employees.map(e=>e.name);
-  const list = g==='MACH' ? db.machines : (g==='VEH' ? db.vehicles : (g==='EMP' ? emp : [...emp, ...db.vehicles, ...db.machines]));
-  $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : 'Employee / Vehicle / Machine'));
+  const all = formSection==='VEH' ? [...emp, ...db.vehicles, ...db.machines] : [...emp, ...db.machines];
+  const list = g==='MACH' ? db.machines : (g==='VEH' ? db.vehicles : (g==='EMP' ? emp : all));
+  $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : (formSection==='VEH' ? 'Employee / Vehicle / Machine' : 'Employee / Machine')));
   fillKeepValue($('fEmployee'), list);
   if(ctype==='EXPENSE'){
     const C = cat.toUpperCase();
@@ -863,7 +872,7 @@ $('btnSave').addEventListener('click', () => {
     quality: $('rowQuality').style.display==='none' ? '' : $('fQuality').value,
     qtype: $('rowQuality').style.display==='none' ? '' : $('fQType').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
     amount: cash, advance: adv, balance: bal,
-    mode: $('fMode').value, next: $('fNext').value || '',
+    mode: $('fMode').value, next: $('fNext').value || '', remarks: $('fRemarks').value.trim(),
     status: bal>0 ? 'PENDING' : 'CLOSED'
   };
   if(formSection==='VEH') e.src = 'VEH';
@@ -888,7 +897,7 @@ function mountForm(sec){
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
-  ['fAddress','fQty','fRate','fCash','fAdvance','fNext','fDays','fDayRate','fOtHrs','fOtRate','fWkFrom','fWkTo'].forEach(id => $(id).value='');
+  ['fAddress','fRemarks','fQty','fRate','fCash','fAdvance','fNext','fDays','fDayRate','fOtHrs','fOtRate','fWkFrom','fWkTo'].forEach(id => $(id).value='');
   $('fOtAmt').textContent = fmt(0); $('fWageAmt').textContent = fmt(0);
   $('fDate').value = today();
   $('fTime').value = nowTime();
@@ -914,7 +923,7 @@ function renderList(){
     (!type || e.ctype===type) &&
     (!st || e.status===st) &&
     (!from || e.date>=from) && (!to || e.date<=to) &&
-    (!q || [e.subject,e.agent,e.address,e.info].join(' ').toUpperCase().includes(q))
+    (!q || [e.subject,e.agent,e.address,e.info,e.remarks].join(' ').toUpperCase().includes(q))
   ).sort((a,b) => ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
   if(!rows.length){
     $('entryList').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No entries yet.<br>Add your first one from the New Entry tab.</div>`;
@@ -933,7 +942,7 @@ function entryCard(e){ return `
             <span class="amt">${e.ctype==='INCOME'?'+':'−'} ${fmt(e.amount)}</span>
           </div>
           <div class="meta">
-            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.days ? ` · ${e.days} days × ${e.dayRate}` : ''}${e.otAmt ? ` · OT ${e.otHrs}h × ${e.otRate} = ${fmt(e.otAmt)}` : ''}${e.wkFrom ? ` · week ${esc(e.wkFrom)} to ${esc(e.wkTo)}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
+            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.remarks ? ' · '+esc(e.remarks) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.days ? ` · ${e.days} days × ${e.dayRate}` : ''}${e.otAmt ? ` · OT ${e.otHrs}h × ${e.otRate} = ${fmt(e.otAmt)}` : ''}${e.wkFrom ? ` · week ${esc(e.wkFrom)} to ${esc(e.wkTo)}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
           </div>
           <div class="tags">
             <span class="tag ${e.status==='PENDING'?'pending':'closed'}">${e.status}</span>
@@ -979,7 +988,7 @@ function editEntry(id){
   if(e.quality) $('fQuality').value=e.quality;
   if(e.qtype) $('fQType').value=e.qtype; $('fQty').value=e.qty||''; $('fRate').value=e.rate||'';
   $('fCash').value=e.amount;
-  $('fAdvance').value=e.advance||''; $('fNext').value=e.next||''; $('fMode').value=e.mode||'GPAY';
+  $('fAdvance').value=e.advance||''; $('fNext').value=e.next||''; $('fMode').value=e.mode||''; $('fRemarks').value=e.remarks||'';
   calc();
   $('editHint').style.display=''; $('editActions').style.display='';
   window.scrollTo(0,0);
@@ -1155,8 +1164,8 @@ function exportJSON(){
   toast('Backup downloaded');
 }
 function exportCSV(){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE'];
-  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note]
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','QUALITY','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
+  const rows = db.entries.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(`ansar-entries-${today()}.csv`, [head.join(','),...rows].join('\n'), 'text/csv');
   toast('CSV downloaded');
