@@ -338,6 +338,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <button class="item" onclick="go('d-last')"><svg class="ic"><use href="#i-list"/></svg>Last entries</button>
   <button class="item" onclick="go('veh')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</button>
   <button class="item" onclick="go('report')"><svg class="ic"><use href="#i-chart"/></svg>Vehicle report</button>
+  <button class="item" onclick="go('bill')"><svg class="ic"><use href="#i-person"/></svg>Agent bill</button>
 </aside>
 
 <div class="topbar">
@@ -475,15 +476,15 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <div class="field"><label for="fTime">Time</label><input type="time" id="fTime"></div>
     </div>
 
+    <div class="grid2" id="rowAgentAddr">
+      <div class="field"><label for="fAgent" id="lblAgent">Agent</label><select id="fAgent"></select></div>
+      <div class="field" id="fldAddress"><label for="fAddress">Address / Place</label><input id="fAddress" placeholder="e.g. Mongam"></div>
+    </div>
+
     <div class="field" id="rowVehicle"><label for="fVehicle">Vehicle</label><select id="fVehicle"></select></div>
 
     <div class="field" id="rowExpCat" style="display:none"><label for="fExpCat">Expense type</label><select id="fExpCat"></select></div>
     <div class="field" id="rowEmployee" style="display:none"><label for="fEmployee" id="lblEmployee">Employee / Vehicle</label><select id="fEmployee"></select></div>
-
-    <div class="grid2" id="rowAgentAddr">
-      <div class="field"><label for="fAgent">Agent</label><select id="fAgent"></select></div>
-      <div class="field"><label for="fAddress">Address / Place</label><input id="fAddress" placeholder="e.g. Mongam"></div>
-    </div>
 
     <div class="grid2" id="rowQuality">
       <div class="field"><label for="fQuality">Material</label><select id="fQuality"></select></div>
@@ -564,6 +565,45 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="pcap"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle entry</div>
   <div id="vehHost"></div>
 
+</div>
+
+<!-- ================= AGENT BILL ================= -->
+<div class="page" id="page-bill">
+  <div class="pcap"><svg class="ic"><use href="#i-person"/></svg>Agent bill</div>
+  <div class="filters">
+    <select id="blAgent"></select>
+    <select id="blSrc"><option value="">Both ledgers</option><option value="Q">Quarry only</option><option value="VEH">Vehicle only</option></select>
+  </div>
+  <div class="filters">
+    <input type="date" id="blFrom" title="From date">
+    <input type="date" id="blTo" title="To date">
+  </div>
+  <div class="filters">
+    <button class="btn" style="width:auto;flex:1;padding:10px" onclick="blQuick(7)">7 days</button>
+    <button class="btn ghost" style="width:auto;flex:1;padding:10px" onclick="blQuick(30)">30 days</button>
+    <button class="btn ghost" style="width:auto;flex:1;padding:10px" onclick="blQuick(0)">All</button>
+  </div>
+
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-person"/></svg>Bill summary</div>
+    <div class="row"><span class="lbl">Income (material supplied)</span><span class="val" id="blIn">₹0</span></div>
+    <div class="row"><span class="lbl">Less: expenses paid by agent</span><span class="val" id="blOut">₹0</span></div>
+    <div class="row net"><span class="lbl">Net payable</span><span class="val" id="blNet">₹0</span></div>
+    <div class="row"><span class="lbl">Already received</span><span class="val sm" id="blGot">₹0</span></div>
+    <div class="row"><span class="lbl">Balance due</span><span class="val sm" id="blDue">₹0</span></div>
+  </div>
+
+  <div class="card num" id="blFleetCard">
+    <h2><svg class="ic"><use href="#i-lorry"/></svg>Vehicle-wise</h2>
+    <div id="blFleet"></div>
+  </div>
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="blPdf()">Bill PDF</button>
+    <button class="btn ghost" onclick="blCsv()">CSV</button>
+  </div>
+
+  <div id="blList"></div>
 </div>
 
 <!-- ================= VEHICLE REPORT ================= -->
@@ -673,6 +713,15 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 </div>
 
+<div class="page" id="page-m-agent">
+  <div class="backbar"><button onclick="showPage('m-agents')">‹ Agents</button><span class="ttl" id="agTitle">Agent <svg class="ic"><use href="#i-person"/></svg></span></div>
+  <div class="card">
+    <h2><svg class="ic"><use href="#i-lorry"/></svg>Vehicles of this agent</h2>
+    <ul class="mlist" id="agVehicles"></ul>
+    <p class="hint">Tick the lorries that belong to this agent. When you pick the agent on an entry, only these vehicle numbers are offered. With none ticked, all vehicles are shown.</p>
+  </div>
+</div>
+
 <div class="page" id="page-m-machines">
   <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Machines / assets <svg class="ic"><use href="#i-exc"/></svg></span></div>
   <div class="card">
@@ -707,6 +756,12 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </div>
     <p class="hint">Data is stored on this phone only. Take a JSON backup regularly and keep it in Drive or WhatsApp.</p>
   </div>
+
+  <div class="card">
+    <h2><svg class="ic"><use href="#i-gear"/></svg>Delete password</h2>
+    <p class="hint" style="margin-top:0">Deleting a site also deletes every entry saved under it, so it asks for this password. The starting password is <b>1234</b>.</p>
+    <div class="btnrow"><button class="btn ghost" onclick="changePin()">Change delete password</button></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -723,7 +778,7 @@ const seed = {
     {name:'SHAHIN', contact:'', type:'OTHER'},
     {name:'RAMZI', contact:'', type:'OTHER'}
   ],
-  agents: ['SHAHIN'],
+  agents: [{name:'SHAHIN', vehicles:[]}],
   expenseCats: ['QUARRY CASH','VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
   machines: ['EXCAVATOR 1','BREAKER','JCB'],
   qualityTypes: ['FIRST QUALITY','SECOND QUALITY','THIRD QUALITY'],
@@ -735,6 +790,7 @@ try { db = JSON.parse(localStorage.getItem(KEY)) || structuredClone(seed); }
 catch(e){ db = structuredClone(seed); }
 if(!db.qualities) db.qualities = structuredClone(seed.qualities);
 if(!db.machines) db.machines = structuredClone(seed.machines);
+db.agents = (db.agents||[]).map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
 if(!db.qualityTypes) db.qualityTypes = structuredClone(seed.qualityTypes);
 seed.expenseCats.forEach(c => { if(!db.expenseCats.includes(c)) db.expenseCats.push(c); });
 function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
@@ -786,9 +842,11 @@ function showPage(p){
   if(p==='entry') mountForm('Q');
   if(p==='veh'){ mountForm('VEH'); refreshFormSelects(); }
   if(p==='report') renderReport();
+  if(p==='bill') renderBill();
   if(p==='list') renderList();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
+  if(p==='m-agent') renderAgent();
   if(p.startsWith('d-')) renderDashSub(p);
   if(p==='entry') refreshFormSelects();
   window.scrollTo(0,0);
@@ -804,7 +862,9 @@ function setType(t){
   $('segExpense').classList.toggle('on', t==='EXPENSE');
   const inc = t==='INCOME';
   $('rowVehicle').style.display = inc?'':'none';
-  $('rowAgentAddr').style.display = inc?'':'none';
+  $('rowAgentAddr').style.display = '';
+  $('fldAddress').style.display = inc?'':'none';
+  $('lblAgent').textContent = inc ? 'Agent' : 'Agent (expense charged to)';
   $('rowQtyRate').style.display = inc ? '' : 'none';
   $('rowAuto').style.display = inc ? '' : 'none';
   $('rowQuality').style.display = inc ? '' : 'none';
@@ -815,6 +875,24 @@ function setType(t){
   $('lblCash').textContent = inc ? 'Total amount ₹' : 'Expense amount ₹';
   $('lblAdv').textContent = inc ? 'Received now ₹' : 'Paid now ₹';
   calc();
+}
+function agentNames(){ return (db.agents||[]).map(a => a.name); }
+function agentOf(name){ return (db.agents||[]).find(a => a.name === name); }
+function mappedVehicles(){
+  const s = new Set();
+  (db.agents||[]).forEach(a => (a.vehicles||[]).forEach(v => s.add(v)));
+  return s;
+}
+function agentFleet(name){
+  const a = agentOf(name);
+  if(a) return (a.vehicles && a.vehicles.length) ? a.vehicles.filter(v => db.vehicles.includes(v)) : [];
+  // no agent chosen: only vehicles that belong to no agent
+  const mapped = mappedVehicles();
+  return db.vehicles.filter(v => !mapped.has(v));
+}
+function agentVehicles(){
+  fillKeepValue($('fVehicle'), agentFleet($('fAgent').value));
+  if(ctype === 'EXPENSE') expSubjects();
 }
 function expGroup(cat){
   const c = (cat||'').toUpperCase();
@@ -840,7 +918,8 @@ function expSubjects(){
   else if(formSection !== 'VEH' && g === 'VEH') g = 'BOTH';
   const emp = db.employees.map(e=>e.name);
   const all = formSection==='VEH' ? [...emp, ...db.vehicles, ...db.machines] : [...emp, ...db.machines];
-  const list = g==='MACH' ? db.machines : (g==='VEH' ? db.vehicles : (g==='EMP' ? emp : all));
+  const vehList = agentFleet($('fAgent').value);
+  const list = g==='MACH' ? db.machines : (g==='VEH' ? vehList : (g==='EMP' ? emp : all));
   $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : (formSection==='VEH' ? 'Employee / Vehicle / Machine' : 'Employee / Machine')));
   fillKeepValue($('fEmployee'), list);
   if(ctype==='EXPENSE'){
@@ -857,7 +936,7 @@ function expSubjects(){
 function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
   fillKeepValue($('fVehicle'), db.vehicles);
-  fillKeepValue($('fAgent'), db.agents, '— none —');
+  fillKeepValue($('fAgent'), agentNames(), '— none —');
   fillKeepValue($('fExpCat'), sectionCats());
   fillKeepValue($('fQuality'), db.qualities);
   fillKeepValue($('fQType'), db.qualityTypes);
@@ -867,6 +946,7 @@ function refreshFormSelects(){
 }
 ['fQty','fRate'].forEach(id => $(id).addEventListener('input', autoFill));
 $('fExpCat').addEventListener('change', expSubjects);
+$('fAgent').addEventListener('change', agentVehicles);
 ['fDays','fDayRate','fOtHrs','fOtRate'].forEach(id => $(id).addEventListener('input', otCalc));
 $('fEmployee').addEventListener('change', () => {
   const emp = db.employees.find(x => x.name === $('fEmployee').value);
@@ -914,7 +994,7 @@ $('btnSave').addEventListener('click', () => {
     site: $('fSite').value, ctype, date: $('fDate').value || today(), time: $('fTime').value || nowTime(),
     subject,
     info: inc ? 'VEHICLE' : $('fExpCat').value,
-    agent: inc ? $('fAgent').value : '',
+    agent: $('fAgent').value,
     address: inc ? $('fAddress').value.trim() : '',
     days: $('rowOT').style.display==='none' ? null : (+$('fDays').value||null),
     dayRate: $('rowOT').style.display==='none' ? null : (+$('fDayRate').value||null),
@@ -1031,7 +1111,8 @@ function editEntry(id){
   setType(e.ctype);
   refreshFormSelects();
   $('fSite').value=e.site; $('fDate').value=e.date; $('fTime').value=e.time||'';
-  if(e.ctype==='INCOME'){ $('fVehicle').value=e.subject; $('fAgent').value=e.agent||''; $('fAddress').value=e.address||''; }
+  $('fAgent').value=e.agent||''; agentVehicles();
+  if(e.ctype==='INCOME'){ $('fVehicle').value=e.subject; $('fAddress').value=e.address||''; }
   else {
     if(e.info && ![...$('fExpCat').options].some(o=>o.value===e.info)) $('fExpCat').insertAdjacentHTML('beforeend', `<option>${esc(e.info)}</option>`);
     $('fExpCat').value=e.info; expSubjects();
@@ -1185,18 +1266,42 @@ function renderManage(){
   const li = (ic,label, sub, onDel) => `<li><span class="lic">${icon(ic)}</span><span class="nm">${label}${sub?`<div class="sub">${sub}</div>`:''}</span><button onclick="${onDel}">Remove</button></li>`;
   $('mSites').innerHTML = db.sites.map((s,i)=>li('i-land',esc(s),'',`delMaster('sites',${i})`)).join('');
   $('mVehicles').innerHTML = db.vehicles.map((s,i)=>li('i-lorry',esc(s),'',`delMaster('vehicles',${i})`)).join('');
-  $('mAgents').innerHTML = db.agents.map((s,i)=>li('i-person',esc(s),'',`delMaster('agents',${i})`)).join('');
+  $('mAgents').innerHTML = db.agents.map((a,i)=>
+    `<li><span class="lic" onclick="openAgent(${i})">${icon('i-person')}</span><span class="nm" onclick="openAgent(${i})">${esc(a.name)}<div class="sub">${a.vehicles && a.vehicles.length ? esc(a.vehicles.join(', ')) : 'No vehicles assigned — tap to add'}</div></span><button onclick="delMaster('agents',${i})">Remove</button></li>`).join('');
   $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`)).join('');
   $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`)).join('');
   $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`)).join('');
   $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`)).join('');
   $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact,e.dayRate?('₹'+e.dayRate+'/day'):'',e.otRate?('OT ₹'+e.otRate+'/hr'):''].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
 }
+let agIdx = null;
+function openAgent(i){ agIdx = i; showPage('m-agent'); }
+function renderAgent(){
+  const a = db.agents[agIdx]; if(!a) { showPage('m-agents'); return; }
+  $('agTitle').innerHTML = `${esc(a.name)} ${icon('i-person')}`;
+  $('agVehicles').innerHTML = db.vehicles.map(v => {
+    const on = (a.vehicles||[]).includes(v);
+    return `<li onclick="toggleAgentVeh('${esc(v)}')"><span class="lic" style="${on?'background:var(--income-bg);color:var(--income)':''}">${icon(on?'i-lorry':'i-lorry')}</span><span class="nm">${esc(v)}</span><button style="color:${on?'var(--income)':'var(--muted)'}">${on?'✓ Added':'Add'}</button></li>`;
+  }).join('') || emptyMini('Add vehicles in Manage → Vehicles first');
+}
+function toggleAgentVeh(v){
+  const a = db.agents[agIdx]; if(!a) return;
+  a.vehicles = a.vehicles || [];
+  const i = a.vehicles.indexOf(v);
+  if(i>-1) a.vehicles.splice(i,1); else a.vehicles.push(v);
+  save(); renderAgent();
+}
 function addMaster(list, inputId){
   const v = $(inputId).value.trim().toUpperCase();
   if(!v) return;
-  if(db[list].includes(v)){ toast('Already exists'); return; }
-  db[list].push(v); save(); $(inputId).value=''; renderManage(); toast('Added');
+  if(list==='agents'){
+    if(agentNames().includes(v)){ toast('Already exists'); return; }
+    db.agents.push({name:v, vehicles:[]});
+  } else {
+    if(db[list].includes(v)){ toast('Already exists'); return; }
+    db[list].push(v);
+  }
+  save(); $(inputId).value=''; renderManage(); toast('Added');
 }
 function addEmployee(){
   const name = $('addEmpName').value.trim().toUpperCase();
@@ -1205,8 +1310,30 @@ function addEmployee(){
   save(); $('addEmpName').value=''; $('addEmpContact').value=''; $('addEmpDay').value=''; $('addEmpOt').value=''; renderManage(); toast('Added');
 }
 function delMaster(list, i){
+  if(list === 'sites') return delSite(i);
   if(!confirm('Remove this item? Old entries keep their value.')) return;
   db[list].splice(i,1); save(); renderManage();
+}
+function delSite(i){
+  const site = db.sites[i]; if(!site) return;
+  const n = db.entries.filter(e => e.site === site).length;
+  if(!confirm(`Delete site "${site}"?\n\nThis also deletes ${n} entr${n===1?'y':'ies'} saved under it. This cannot be undone.`)) return;
+  const pin = prompt(`Enter the delete password to remove "${site}" and its ${n} entr${n===1?'y':'ies'}:`);
+  if(pin === null) return;
+  if(pin !== (db.pin || '1234')){ toast('Wrong password — nothing deleted'); return; }
+  db.entries = db.entries.filter(e => e.site !== site);
+  db.sites.splice(i, 1);
+  save(); renderManage(); renderMenu();
+  toast(`Deleted ${site} and ${n} entr${n===1?'y':'ies'}`);
+}
+function changePin(){
+  const cur = prompt('Enter the current delete password:');
+  if(cur === null) return;
+  if(cur !== (db.pin || '1234')){ toast('Wrong password'); return; }
+  const next = prompt('Enter the new delete password:');
+  if(next === null) return;
+  if(!next.trim()){ toast('Password cannot be blank'); return; }
+  db.pin = next.trim(); save(); toast('Delete password changed');
 }
 
 /* ================= BACKUP ================= */
@@ -1264,6 +1391,180 @@ function renderReport(){
     : `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No entries for this vehicle and period.</div>`;
 }
 function rpPick(v){ $('rpVehicle').value=v; renderReport(); window.scrollTo(0,0); }
+function blQuick(days){
+  if(!days){ $('blFrom').value=''; $('blTo').value=''; }
+  else { $('blTo').value = today(); $('blFrom').value = new Date(Date.now()-(days-1)*86400000).toISOString().slice(0,10); }
+  renderBill();
+}
+['blAgent','blSrc','blFrom','blTo'].forEach(id => $(id).addEventListener('change', renderBill));
+function blRows(){
+  fillKeepValue($('blAgent'), agentNames(), 'All agents');
+  const a=$('blAgent').value, sec=$('blSrc').value, from=$('blFrom').value, to=$('blTo').value;
+  return db.entries.filter(e =>
+    e.agent && (!a || e.agent===a) &&
+    (!sec || (sec==='VEH' ? e.src==='VEH' : e.src!=='VEH')) &&
+    (!from || e.date>=from) && (!to || e.date<=to))
+    .sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
+}
+function blTotals(rows){
+  let inc=0, exp=0, got=0;
+  rows.forEach(e => {
+    if(e.ctype==='INCOME'){ inc += e.amount||0; got += e.advance||0; }
+    else exp += e.amount||0;
+  });
+  return {inc, exp, net: inc-exp, got, due: (inc-exp)-got};
+}
+function renderBill(){
+  const rows = blRows(), t = blTotals(rows);
+  $('blIn').textContent = fmt(t.inc);
+  $('blOut').textContent = '− ' + fmt(t.exp);
+  $('blNet').textContent = sfmt(t.net);
+  $('blGot').textContent = fmt(t.got);
+  $('blDue').textContent = sfmt(t.due);
+  const per = {};
+  rows.forEach(e => {
+    if(!db.vehicles.includes(e.subject)) return;
+    const p = per[e.subject] || (per[e.subject] = {i:0,o:0});
+    if(e.ctype==='INCOME') p.i += e.amount; else p.o += e.amount;
+  });
+  const ks = Object.keys(per).sort((x,y)=>(per[y].i-per[y].o)-(per[x].i-per[x].o));
+  $('blFleetCard').style.display = ks.length ? '' : 'none';
+  $('blFleet').innerHTML = ks.map(k => {
+    const p = per[k], n = p.i-p.o;
+    return `<div class="bar"><span class="bic">${icon('i-lorry')}</span><span class="name">${esc(k)}<div class="sub2">Income ${fmt(p.i)} · Expense ${fmt(p.o)}</div></span><span class="amt ${n>=0?'g':'r'}">${sfmt(n)}</span></div>`;
+  }).join('');
+  $('blList').innerHTML = rows.length ? rows.slice().reverse().map(entryCard).join('')
+    : `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-person"/></svg><br>No entries for this agent and period.<br>Pick an agent on an entry to bill it here.</div>`;
+}
+function blCsv(){
+  const rows = blRows();
+  if(!rows.length){ toast('Nothing to export'); return; }
+  const a = $('blAgent').value || 'all-agents';
+  csvDownload(rows, `ansar-bill-${a.replace(/\s+/g,'')}-${$('blFrom').value||'start'}_to_${$('blTo').value||today()}.csv`);
+  toast('Bill CSV downloaded');
+}
+function blHtml(rows){
+  const agent = $('blAgent').value || 'All agents';
+  const from = $('blFrom').value || '—', to = $('blTo').value || today();
+  const money = n => '₹' + (Number(n)||0).toLocaleString('en-IN');
+  const sgn = n => (n<0?'− ':'') + money(Math.abs(n));
+  const line = e => `<tr class="${e.ctype==='INCOME'?'in':'ex'}">
+      <td>${esc(e.date)}</td>
+      <td>${esc(e.qtype||'')}</td>
+      <td>${esc(e.quality||e.info||'')}</td>
+      <td class="n">${e.rate!=null?e.rate:''}</td>
+      <td class="n">${e.qty!=null?e.qty:''}</td>
+      <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td>
+      <td class="n r">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
+    </tr>`;
+
+  // ledger sections -> vehicle sub-headings -> entries -> vehicle subtotal
+  const ledgers = [];
+  const pick = (src, title) => {
+    const list = rows.filter(e => src==='VEH' ? e.src==='VEH' : e.src!=='VEH');
+    if(list.length) ledgers.push({title, list});
+  };
+  if($('blSrc').value === 'VEH') pick('VEH','Vehicle ledger');
+  else if($('blSrc').value === 'Q') pick('Q','Quarry ledger');
+  else { pick('Q','Quarry ledger'); pick('VEH','Vehicle ledger'); }
+
+  let html = '', vehNetAll = 0, otherExpAll = 0, incAll = 0, expAll = 0, gotAll = 0;
+  ledgers.forEach(L => {
+    html += `<tr class="led"><td colspan="7">${esc(L.title)}</td></tr>`;
+    const byVeh = {}, other = [];
+    L.list.forEach(e => {
+      if(db.vehicles.includes(e.subject)) (byVeh[e.subject] = byVeh[e.subject] || []).push(e);
+      else other.push(e);
+    });
+    let ledNet = 0;
+    Object.keys(byVeh).sort().forEach(v => {
+      const list = byVeh[v];
+      let i = 0, o = 0;
+      list.forEach(e => { if(e.ctype==='INCOME'){ i += e.amount||0; gotAll += e.advance||0; } else o += e.amount||0; });
+      incAll += i; expAll += o; vehNetAll += (i-o); ledNet += (i-o);
+      html += `<tr class="veh"><td colspan="7">${esc(v)}</td></tr>`;
+      html += list.map(line).join('');
+      html += `<tr class="sub"><td colspan="3">Subtotal — ${esc(v)}</td><td class="n" colspan="2"></td><td class="n">${money(i)}</td><td class="n r">${o?money(o):''}</td></tr>`;
+      html += `<tr class="sub net"><td colspan="6">Net for ${esc(v)}</td><td class="n">${sgn(i-o)}</td></tr>`;
+    });
+    if(other.length){
+      let o = 0, i = 0;
+      other.forEach(e => { if(e.ctype==='EXPENSE') o += e.amount||0; else { i += e.amount||0; gotAll += e.advance||0; } });
+      incAll += i; expAll += o; otherExpAll += o; vehNetAll += i;
+      html += `<tr class="veh"><td colspan="7">Not linked to a vehicle</td></tr>`;
+      html += other.map(line).join('');
+      html += `<tr class="sub net"><td colspan="6">Total — not linked to a vehicle</td><td class="n">${sgn(i-o)}</td></tr>`;
+      ledNet += (i-o);
+    }
+    if(ledgers.length > 1) html += `<tr class="ledtot"><td colspan="6">${esc(L.title)} total</td><td class="n">${sgn(ledNet)}</td></tr>`;
+  });
+
+  const grand = incAll - expAll;
+  const due = grand - gotAll;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Agent bill — ${esc(agent)}</title><style>
+    @page{size:A4;margin:12mm}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:11.5px}
+    h1{font-size:18px;letter-spacing:.06em;margin:0 0 2px}
+    .agent{font-size:15px;font-weight:800;color:#0b4f43;margin-top:4px}
+    .sub2{font-size:11px;color:#5d655a}
+    .head{border-bottom:2px solid #0b4f43;padding-bottom:8px;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#0b4f43;color:#fff;font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:left;padding:6px}
+    td{padding:5px 6px;border-bottom:1px solid #e9e4d6;vertical-align:top}
+    tr.led td{background:#0b4f43;color:#fff;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px}
+    tr.veh td{background:#f1ece1;font-weight:800;font-size:11.5px;letter-spacing:.04em;color:#0b4f43;border-top:1px solid #cfc7b2}
+    tr.sub td{font-weight:700;background:#fbfaf6;border-bottom:1px solid #d9d2bf}
+    tr.sub.net td{font-weight:800;background:#eef4f0;color:#0b4f43;font-size:12.5px}
+    tr.ledtot td{font-weight:800;background:#e3ece7;border-top:1.5px solid #0b4f43;font-size:12.5px}
+    .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .r{color:#c24a22}
+    tfoot td{border-bottom:none;font-weight:800;font-size:12.5px;padding-top:6px}
+    tfoot tr.first td{border-top:2px solid #0b4f43;padding-top:9px}
+    tfoot tr.grand td{border-top:1.5px solid #0b4f43;font-size:15px;padding-top:8px;background:#eef4f0}
+    tfoot tr.due td{border-top:1px solid #0b4f43;font-size:14px}
+    .foot{margin-top:14px;font-size:10px;color:#8a9185;text-align:center}
+    .sign{margin-top:26px;display:flex;justify-content:space-between;font-size:11px;color:#5d655a}
+    .sign div{border-top:1px solid #a9b0a4;padding-top:5px;width:38%;text-align:center}
+  </style></head><body>
+    <div class="head">
+      <h1>ANSAR BUSINESS</h1>
+      <div class="agent">Bill to: ${esc(agent)}</div>
+      <div class="sub2">Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries &nbsp;·&nbsp; Date: ${esc(today())}</div>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Quality type</th><th>Material / item</th><th class="n">Rate</th><th class="n">Qty</th><th class="n">Income</th><th class="n">Expense</th></tr></thead>
+      <tbody>${html}</tbody>
+      <tfoot>
+        <tr class="first"><td colspan="6">TOTAL INCOME (all vehicles)</td><td class="n">${money(incAll)}</td></tr>
+        <tr><td colspan="6">TOTAL EXPENSE PAID BY AGENT</td><td class="n r">− ${money(expAll)}</td></tr>
+        <tr class="grand"><td colspan="6">GRAND TOTAL — NET PAYABLE</td><td class="n">${sgn(grand)}</td></tr>
+        <tr><td colspan="6">Already received</td><td class="n">${money(gotAll)}</td></tr>
+        <tr class="due"><td colspan="6">BALANCE DUE</td><td class="n">${sgn(due)}</td></tr>
+      </tfoot>
+    </table>
+    <div class="sign"><div>Agent signature</div><div>For Ansar Business</div></div>
+    <div class="foot">Generated ${esc(today())} · Ansar Business app</div>
+  </body></html>`;
+}
+function blPdf(){
+  const rows = blRows();
+  if(!rows.length){ toast('Nothing to print'); return; }
+  printDoc(blHtml(rows));
+}
+function printDoc(docHtml){
+  const f = document.createElement('iframe');
+  f.setAttribute('aria-hidden','true');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+  document.body.appendChild(f);
+  const doc = f.contentWindow.document;
+  doc.open(); doc.write(docHtml); doc.close();
+  setTimeout(() => {
+    try { f.contentWindow.focus(); f.contentWindow.print(); }
+    catch(err){ toast('Could not open print view'); }
+    setTimeout(() => f.remove(), 60000);
+  }, 400);
+  toast('Choose "Save as PDF" in the print screen');
+}
 function rpHtml(rows){
   const v = $('rpVehicle').value || 'All vehicles';
   const sec = $('rpSrc').value==='VEH' ? 'Vehicle ledger' : ($('rpSrc').value==='Q' ? 'Quarry ledger' : 'Quarry + Vehicle ledgers');
@@ -1326,18 +1627,7 @@ function rpHtml(rows){
 function rpPdf(){
   const rows = rpRows().slice().sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
   if(!rows.length){ toast('Nothing to print'); return; }
-  const f = document.createElement('iframe');
-  f.setAttribute('aria-hidden','true');
-  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
-  document.body.appendChild(f);
-  const doc = f.contentWindow.document;
-  doc.open(); doc.write(rpHtml(rows)); doc.close();
-  setTimeout(() => {
-    try { f.contentWindow.focus(); f.contentWindow.print(); }
-    catch(err){ toast('Could not open print view'); }
-    setTimeout(() => f.remove(), 60000);
-  }, 400);
-  toast('Choose "Save as PDF" in the print screen');
+  printDoc(rpHtml(rows));
 }
 function rpExport(){
   const rows = rpRows();
