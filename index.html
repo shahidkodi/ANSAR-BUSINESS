@@ -510,7 +510,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
     <div class="grid2" id="rowAgentAddr">
       <div class="field"><label for="fAgent" id="lblAgent">Agent</label><select id="fAgent"></select></div>
-      <div class="field" id="fldAddress"><label for="fAddress">Address / Place</label><input id="fAddress" placeholder="e.g. Mongam"></div>
+      <div class="field" id="fldAddress"><label for="fAddress">Address / Place</label><input id="fAddress"></div>
     </div>
 
     <div class="field" id="rowVehicle"><label for="fVehicle">Vehicle</label><select id="fVehicle"></select></div>
@@ -524,8 +524,8 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </div>
 
     <div class="grid2" id="rowQtyRate">
-      <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal" placeholder="275"></div>
-      <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal" placeholder="50"></div>
+      <div class="field"><label for="fQty">Qty</label><input type="number" id="fQty" inputmode="decimal"></div>
+      <div class="field"><label for="fRate">Rate</label><input type="number" id="fRate" inputmode="decimal"></div>
     </div>
 
     <div id="rowOT" style="display:none">
@@ -534,13 +534,13 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
         <div class="field"><label for="fWkTo">Week to</label><input type="date" id="fWkTo"></div>
       </div>
       <div class="grid2">
-        <div class="field"><label for="fDays">Days worked</label><input type="number" id="fDays" inputmode="decimal" placeholder="6" step="0.5"></div>
-        <div class="field"><label for="fDayRate">Daily wage ₹</label><input type="number" id="fDayRate" inputmode="decimal" placeholder="900"></div>
+        <div class="field"><label for="fDays">Days worked</label><input type="number" id="fDays" inputmode="decimal" step="0.5"></div>
+        <div class="field"><label for="fDayRate">Daily wage ₹</label><input type="number" id="fDayRate" inputmode="decimal"></div>
       </div>
       <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Wage (Days × Daily wage)</span><span class="val" id="fWageAmt">₹0</span></div>
       <div class="grid2">
-        <div class="field"><label for="fOtHrs">Overtime hours</label><input type="number" id="fOtHrs" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label for="fOtRate">OT rate / hour ₹</label><input type="number" id="fOtRate" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label for="fOtHrs">Overtime hours</label><input type="number" id="fOtHrs" inputmode="decimal"></div>
+        <div class="field"><label for="fOtRate">OT rate / hour ₹</label><input type="number" id="fOtRate" inputmode="decimal"></div>
       </div>
       <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Overtime amount</span><span class="val" id="fOtAmt">₹0</span></div>
     </div>
@@ -559,7 +559,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
     <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-cash"/></svg>Balance</span><span class="val" id="fBalance">₹0</span></div>
 
-    <div class="field"><label for="fRemarks">Remarks</label><input id="fRemarks" placeholder="Any note about this entry"></div>
+    <div class="field"><label for="fRemarks">Remarks</label><input id="fRemarks"></div>
 
     <button class="btn" id="btnSave">Save quarry entry</button>
     <p class="hint" id="editHint" style="display:none">Editing an existing entry. Saving will update it.</p>
@@ -749,7 +749,8 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="ledger num" style="padding-bottom:16px">
     <div class="lhead"><svg class="ic"><use href="#i-person"/></svg>Bill summary</div>
     <div class="row"><span class="lbl">Income (material supplied)</span><span class="val" id="blIn">₹0</span></div>
-    <div class="row"><span class="lbl">Less: expenses paid by agent</span><span class="val" id="blOut">₹0</span></div>
+    <div class="row"><span class="lbl">Less: expenses owed to agent</span><span class="val" id="blOut">₹0</span></div>
+    <div class="row"><span class="lbl">Already paid (not deducted)</span><span class="val sm" id="blPaidExp">₹0</span></div>
     <div class="row net"><span class="lbl">Net payable</span><span class="val" id="blNet">₹0</span></div>
     <div class="row"><span class="lbl">Already received</span><span class="val sm" id="blGot">₹0</span></div>
     <div class="row"><span class="lbl">Balance due</span><span class="val sm" id="blDue">₹0</span></div>
@@ -1036,6 +1037,7 @@ function setType(t){
   const inc = t==='INCOME';
   $('rowVehicle').style.display = inc?'':'none';
   $('rowAgentAddr').style.display = '';
+  agentVehicles();
   $('fldAddress').style.display = inc?'':'none';
   $('lblAgent').textContent = inc ? 'Agent' : 'Agent (expense charged to)';
   $('rowQtyRate').style.display = inc ? '' : 'none';
@@ -1064,7 +1066,9 @@ function agentFleet(name){
   return db.vehicles.filter(v => !mapped.has(v));
 }
 function agentVehicles(){
-  fillKeepValue($('fVehicle'), agentFleet($('fAgent').value));
+  const fl = agentFleet($('fAgent').value);
+  fillKeepValue($('fVehicle'), fl);
+  if(!fl.length) $('fVehicle').innerHTML = '<option value="">— no vehicle for this agent —</option>';
   if(ctype === 'EXPENSE') expSubjects();
 }
 function expGroup(cat){
@@ -1108,12 +1112,11 @@ function expSubjects(){
 }
 function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
-  fillKeepValue($('fVehicle'), db.vehicles);
   fillKeepValue($('fAgent'), agentNames(), '— none —');
   fillKeepValue($('fExpCat'), sectionCats());
   fillKeepValue($('fQuality'), db.qualities);
   fillKeepValue($('fQType'), db.qualityTypes);
-  expSubjects();
+  agentVehicles();
   if(!$('fDate').value) $('fDate').value = today();
   if(!$('fTime').value) $('fTime').value = nowTime();
 }
@@ -1194,16 +1197,16 @@ $('btnSave').addEventListener('click', () => {
   save();
   clearForm();
   toast(formSection==='VEH' ? 'Vehicle entry saved' : 'Quarry entry saved');
-  showList(formSection);
+  window.scrollTo(0,0);
 });
-$('btnCancelEdit').addEventListener('click', () => { editId=null; clearForm(); showList(formSection); });
+$('btnCancelEdit').addEventListener('click', () => { editId=null; clearForm(); window.scrollTo(0,0); });
 let formSection = 'Q';
 function mountForm(sec){
   if(sec !== formSection && editId){ editId = null; clearForm(); }
   formSection = sec;
   $(sec==='VEH' ? 'vehHost' : 'entryHost').appendChild($('entryForm'));
   fillKeepValue($('fExpCat'), sectionCats());
-  if(ctype==='EXPENSE') expSubjects();
+  agentVehicles();
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
@@ -1921,17 +1924,19 @@ function blRows(){
     .sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
 }
 function blTotals(rows){
-  let inc=0, exp=0, got=0;
+  let inc=0, exp=0, expPaid=0, got=0;
   rows.forEach(e => {
     if(e.ctype==='INCOME'){ inc += e.amount||0; got += e.advance||0; }
-    else exp += e.amount||0;
+    else if(e.status==='CLOSED') expPaid += e.amount||0;   // already settled - not deducted
+    else exp += e.amount||0;                               // still owed to the agent
   });
-  return {inc, exp, net: inc-exp, got, due: (inc-exp)-got};
+  return {inc, exp, expPaid, net: inc-exp, got, due: (inc-exp)-got};
 }
 function renderBill(){
   const rows = blRows(), t = blTotals(rows);
   $('blIn').textContent = fmt(t.inc);
   $('blOut').textContent = '− ' + fmt(t.exp);
+  $('blPaidExp').textContent = fmt(t.expPaid);
   $('blNet').textContent = sfmt(t.net);
   $('blGot').textContent = fmt(t.got);
   $('blDue').textContent = sfmt(t.due);
@@ -1970,26 +1975,34 @@ function blHtml(rows){
     else other.push(e);
   });
   const sum = list => {
-    let i=0,o=0,got=0;
-    list.forEach(e => { if(e.ctype==='INCOME'){ i+=e.amount||0; got+=e.advance||0; } else o+=e.amount||0; });
-    return {i,o,net:i-o,got};
+    let i=0,o=0,paid=0,got=0;
+    list.forEach(e => {
+      if(e.ctype==='INCOME'){ i+=e.amount||0; got+=e.advance||0; }
+      else if(e.status==='CLOSED') paid+=e.amount||0;
+      else o+=e.amount||0;
+    });
+    return {i,o,paid,net:i-o,got};
   };
-  const line = e => `<tr>
+  const paidTag = '<span class="pd">paid</span>';
+  const line = e => {
+    const closedExp = e.ctype==='EXPENSE' && e.status==='CLOSED';
+    return `<tr class="${closedExp?'done':''}">
       <td>${esc(e.date)}</td>
-      <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}</td>
+      <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}${closedExp?paidTag:''}</td>
       <td class="n">${e.qty!=null?e.qty:''}</td>
       <td class="n">${e.rate!=null?e.rate:''}</td>
       <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td>
-      <td class="n r">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
+      <td class="n ${closedExp?'pdv':'r'}">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
     </tr>`;
+  };
 
-  let body = '', T = {i:0,o:0,got:0};
+  let body = '', T = {i:0,o:0,paid:0,got:0};
   const block = (name, list) => {
     const g = sum(list);
-    T.i += g.i; T.o += g.o; T.got += g.got;
+    T.i += g.i; T.o += g.o; T.paid += g.paid; T.got += g.got;
     body += `<tr class="veh"><td colspan="4">${esc(name)}</td><td class="n">${g.i?money(g.i):''}</td><td class="n r">${g.o?money(g.o):''}</td></tr>`;
     body += list.map(line).join('');
-    body += `<tr class="vnet"><td colspan="5">Net — ${esc(name)}</td><td class="n">${sg(g.net)}</td></tr>`;
+    body += `<tr class="vnet"><td colspan="5">Net — ${esc(name)}${g.paid?` <span class="q">(₹${g.paid.toLocaleString('en-IN')} already paid, not deducted)</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
   };
   Object.keys(byVeh).sort().forEach(v => block(v, byVeh[v]));
   if(other.length) block('Other (not vehicle-wise)', other);
@@ -2010,6 +2023,10 @@ function blHtml(rows){
     th{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#6e7568;text-align:left;padding:0 8px 6px;border-bottom:1px solid #cfc7b2}
     td{padding:5px 8px;border-bottom:1px solid #f0ece1}
     .q{color:#8a9185;font-size:9.5px}
+    .pd{display:inline-block;margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#1e7a46;background:#e4f2e8;border:1px solid #bfe0cb;border-radius:99px;padding:1px 6px;vertical-align:1px}
+    tr.done td{color:#8a9185}
+    .pdv{color:#8a9185}
+    .sum div.muted{color:#6e7568;font-size:11px}
     tr.veh td{background:#f4f1e8;font-weight:800;font-size:12px;color:#0b4f43;letter-spacing:.03em;padding:7px 8px;border-bottom:1px solid #ddd5c2}
     tr.vnet td{font-weight:800;font-size:12px;color:#0b4f43;background:#fcfbf7;border-bottom:1px solid #ddd5c2}
     .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -2036,7 +2053,8 @@ function blHtml(rows){
     </table>
     <div class="sumwrap"><div class="sum">
       <div><span>Total income</span><span>${money(T.i)}</span></div>
-      <div><span>Less: expenses paid by agent</span><span class="r">− ${money(T.o)}</span></div>
+      <div><span>Less: expenses owed to agent</span><span class="r">− ${money(T.o)}</span></div>
+      ${T.paid ? `<div class="muted"><span>Expenses already paid (not deducted)</span><span>${money(T.paid)}</span></div>` : ''}
       <div class="net"><span>NET PAYABLE</span><span>${sg(grand)}</span></div>
       <div class="sep"><span>Already received</span><span>${money(T.got)}</span></div>
       <div class="due"><span>BALANCE DUE</span><span>${sg(due)}</span></div>
