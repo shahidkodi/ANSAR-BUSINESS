@@ -1,7 +1,7 @@
 {
-  "name": "Ansar Business",
-  "short_name": "Ansar",
-  "description": "Income, expense and vehicle tracking for Ansar Business",
+  "name": "PT Brother",
+  "short_name": "PT Brother",
+  "description": "Income, expense and vehicle tracking for PT Brother",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B4F43">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Ansar Business</title>
+<title>PT Brother</title>
 <style>
 :root{
   --green:#0B4F43; --green-2:#0E5A4C; --green-dark:#083A31;
@@ -210,6 +212,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 }
 .drawer .item svg{width:20px; height:20px; color:var(--green); flex-shrink:0}
 .drawer .item:active{background:var(--sand)}
+.drawer .dsec{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:13px 18px 5px;background:var(--sand)}
 .rembanner{
   width:100%; display:flex; align-items:center; gap:10px; text-align:left;
   background:var(--amber-bg); border:1px solid #EBD58F; border-radius:13px;
@@ -245,6 +248,24 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 .ledger.veh .lbl{color:#B8C6E0}
 .ledger.veh .row+.row{border-top-color:rgba(255,255,255,.2)}
 .seg button.sel.on{background:var(--green); color:#fff}
+.rfil{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.rfil select,.rfil input{width:auto;flex:1;min-width:112px;padding:9px 10px;font-size:14px;box-shadow:var(--shadow)}
+.qbtn{display:flex;gap:8px;margin-bottom:14px}
+.qbtn button{flex:1;padding:9px 4px;font:inherit;font-size:13px;font-weight:700;background:var(--card);color:var(--green);border:1px solid var(--border);border-radius:10px;cursor:pointer;box-shadow:var(--shadow)}
+.qbtn button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.grp{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+.grp .gh{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--sand);border-bottom:1px solid var(--border)}
+.grp .gh .gi{width:32px;height:32px;border-radius:9px;background:var(--card);color:var(--green);display:grid;place-items:center;flex-shrink:0;border:1px solid var(--border)}
+.grp .gh .gi svg{width:18px;height:18px}
+.grp .gh .gt{flex:1;font-weight:800;font-size:15px}
+.grp .gh .gn{font-weight:800;font-size:16px}
+.grp .gb{padding:4px 14px 10px}
+.grp .gr{display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px;border-bottom:1px solid var(--border)}
+.grp .gr:last-child{border-bottom:none}
+.grp .gr .k{color:var(--muted)}
+.grp .gr .v{font-weight:700}
+.grp .gr.tot{border-top:1.5px solid var(--border);margin-top:2px;padding-top:9px;font-size:15px}
+.grp .gr.tot .k{color:var(--ink);font-weight:800}
 /* ---------- Manage menu ---------- */
 .mmenu{list-style:none}
 .mmenu li{display:flex; align-items:center; gap:12px; padding:14px 2px; border-bottom:1px solid var(--border); cursor:pointer}
@@ -326,7 +347,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 <aside class="drawer" id="drawer">
   <div class="dhead">
     <div class="mark"><svg class="ic"><use href="#i-lorry"/></svg></div>
-    <div><div class="s">Ledger Menu</div><div class="t">ANSAR BUSINESS</div></div>
+    <div><div class="s">Ledger Menu</div><div class="t">PT BROTHER</div></div>
   </div>
   <button class="item" onclick="go('dash')"><svg class="ic"><use href="#i-chart"/></svg>Dashboard</button>
   <button class="item" onclick="go('d-reminders')"><svg class="ic"><use href="#i-bell"/></svg>Payment reminders</button>
@@ -337,7 +358,12 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <button class="item" onclick="go('d-agents')"><svg class="ic"><use href="#i-person"/></svg>Quarry income by agent</button>
   <button class="item" onclick="go('d-last')"><svg class="ic"><use href="#i-list"/></svg>Last entries</button>
   <button class="item" onclick="go('veh')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle ledger</button>
-  <button class="item" onclick="go('report')"><svg class="ic"><use href="#i-chart"/></svg>Vehicle report</button>
+  <div class="dsec">Reports</div>
+  <button class="item" onclick="go('rs')"><svg class="ic"><use href="#i-land"/></svg>Site report</button>
+  <button class="item" onclick="go('ri')"><svg class="ic"><use href="#i-cash"/></svg>Income report</button>
+  <button class="item" onclick="go('re')"><svg class="ic"><use href="#i-fuel"/></svg>Expense report</button>
+  <button class="item" onclick="go('rw')"><svg class="ic"><use href="#i-person"/></svg>Salary report</button>
+  <button class="item" onclick="go('report')"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle report</button>
   <button class="item" onclick="go('bill')"><svg class="ic"><use href="#i-person"/></svg>Agent bill</button>
 </aside>
 
@@ -347,7 +373,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="mark"><svg class="ic"><use href="#i-lorry"/></svg></div>
   <div>
     <div class="sub">Transport &amp; Earth Work Ledger</div>
-    <h1>ANSAR BUSINESS</h1>
+    <h1>PT BROTHER</h1>
   </div>
   <div class="date num" id="todayLabel"></div>
 </header>
@@ -565,6 +591,136 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="pcap"><svg class="ic"><use href="#i-lorry"/></svg>Vehicle entry</div>
   <div id="vehHost"></div>
 
+</div>
+
+<!-- ================= REPORTS ================= -->
+<div class="page" id="page-rs">
+  <div class="pcap"><svg class="ic"><use href="#i-land"/></svg>Site report</div>
+  <div class="rfil">
+    <input type="date" id="rsFrom" title="From date">
+    <input type="date" id="rsTo" title="To date">
+  </div>
+  <div class="rfil">
+    <select id="rsSrc"><option value="">Both ledgers</option><option value="Q">Quarry only</option><option value="VEH">Vehicle only</option></select>
+    <select id="rsSite"><option value="">All sites</option></select>
+  </div>
+  <div class="qbtn">
+    <button onclick="rQuick('rs',7)">7 days</button>
+    <button onclick="rQuick('rs',30)">30 days</button>
+    <button onclick="rQuick('rs',0)">All</button>
+  </div>
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-chart"/></svg>Summary</div>
+    <div class="row"><span class="lbl">Income</span><span class="val" id="rsIn">₹0</span></div>
+    <div class="row"><span class="lbl">Expense</span><span class="val" id="rsOut">₹0</span></div>
+    <div class="row net"><span class="lbl">Net</span><span class="val" id="rsNet">₹0</span></div>
+    <div class="row"><span class="lbl">To collect</span><span class="val sm" id="rsRec">₹0</span></div>
+    <div class="row"><span class="lbl">To pay</span><span class="val sm" id="rsPay">₹0</span></div>
+  </div>
+
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="rPdf('rs')">PDF</button>
+    <button class="btn ghost" onclick="rCsv('rs')">CSV</button>
+  </div>
+  <div id="rsBody"></div>
+</div>
+
+<div class="page" id="page-ri">
+  <div class="pcap"><svg class="ic"><use href="#i-cash"/></svg>Income report</div>
+  <div class="rfil">
+    <input type="date" id="riFrom" title="From date">
+    <input type="date" id="riTo" title="To date">
+  </div>
+  <div class="rfil">
+    <select id="riSrc"><option value="">Both ledgers</option><option value="Q">Quarry only</option><option value="VEH">Vehicle only</option></select>
+    <select id="riSite"><option value="">All sites</option></select>
+  </div>
+  <div class="rfil">
+    <select id="riGroup"><option value="">Group by: Vehicle</option></select>
+  </div>
+  <div class="qbtn">
+    <button onclick="rQuick('ri',7)">7 days</button>
+    <button onclick="rQuick('ri',30)">30 days</button>
+    <button onclick="rQuick('ri',0)">All</button>
+  </div>
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-chart"/></svg>Summary</div>
+    <div class="row"><span class="lbl">Total income</span><span class="val" id="riIn">₹0</span></div>
+    <div class="row"><span class="lbl">Received</span><span class="val sm" id="riGot">₹0</span></div>
+    <div class="row net"><span class="lbl">To collect</span><span class="val" id="riDue">₹0</span></div>
+  </div>
+
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="rPdf('ri')">PDF</button>
+    <button class="btn ghost" onclick="rCsv('ri')">CSV</button>
+  </div>
+  <div id="riBody"></div>
+</div>
+
+<div class="page" id="page-re">
+  <div class="pcap"><svg class="ic"><use href="#i-fuel"/></svg>Expense report</div>
+  <div class="rfil">
+    <input type="date" id="reFrom" title="From date">
+    <input type="date" id="reTo" title="To date">
+  </div>
+  <div class="rfil">
+    <select id="reSrc"><option value="">Both ledgers</option><option value="Q">Quarry only</option><option value="VEH">Vehicle only</option></select>
+    <select id="reSite"><option value="">All sites</option></select>
+  </div>
+  <div class="rfil">
+    <select id="reGroup"><option value="">Group by: Category</option></select>
+  </div>
+  <div class="qbtn">
+    <button onclick="rQuick('re',7)">7 days</button>
+    <button onclick="rQuick('re',30)">30 days</button>
+    <button onclick="rQuick('re',0)">All</button>
+  </div>
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-chart"/></svg>Summary</div>
+    <div class="row"><span class="lbl">Total expense</span><span class="val" id="reOut">₹0</span></div>
+    <div class="row"><span class="lbl">Paid</span><span class="val sm" id="rePaid">₹0</span></div>
+    <div class="row net"><span class="lbl">To pay</span><span class="val" id="reDue">₹0</span></div>
+  </div>
+
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="rPdf('re')">PDF</button>
+    <button class="btn ghost" onclick="rCsv('re')">CSV</button>
+  </div>
+  <div id="reBody"></div>
+</div>
+
+<div class="page" id="page-rw">
+  <div class="pcap"><svg class="ic"><use href="#i-person"/></svg>Salary report</div>
+  <div class="rfil">
+    <input type="date" id="rwFrom" title="From date">
+    <input type="date" id="rwTo" title="To date">
+  </div>
+  <div class="rfil">
+    <select id="rwEmp"><option value="">All employees</option></select>
+  </div>
+  <div class="qbtn">
+    <button onclick="rQuick('rw',7)">7 days</button>
+    <button onclick="rQuick('rw',30)">30 days</button>
+    <button onclick="rQuick('rw',0)">All</button>
+  </div>
+  <div class="ledger num" style="padding-bottom:16px">
+    <div class="lhead"><svg class="ic"><use href="#i-chart"/></svg>Summary</div>
+    <div class="row"><span class="lbl">Wages earned</span><span class="val" id="rwWage">₹0</span></div>
+    <div class="row"><span class="lbl">Overtime</span><span class="val sm" id="rwOt">₹0</span></div>
+    <div class="row"><span class="lbl">Less: advance paid</span><span class="val" id="rwAdv">₹0</span></div>
+    <div class="row"><span class="lbl">Paid against wages</span><span class="val sm" id="rwPaid">₹0</span></div>
+    <div class="row net"><span class="lbl">Balance payable</span><span class="val" id="rwDue">₹0</span></div>
+  </div>
+
+
+  <div class="btnrow" style="margin-bottom:14px">
+    <button class="btn" onclick="rPdf('rw')">PDF</button>
+    <button class="btn ghost" onclick="rCsv('rw')">CSV</button>
+  </div>
+  <div id="rwBody"></div>
 </div>
 
 <!-- ================= AGENT BILL ================= -->
@@ -843,6 +999,7 @@ function showPage(p){
   if(p==='veh'){ mountForm('VEH'); refreshFormSelects(); }
   if(p==='report') renderReport();
   if(p==='bill') renderBill();
+  if(RCFG[p]) renderReportPage(p);
   if(p==='list') renderList();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
@@ -1252,6 +1409,260 @@ let listSection = 'Q';
 function showList(sec){ listSection = sec; showPage('list'); }
 function renderVeh(){ if($('page-list').classList.contains('active')) renderList(); }
 
+
+/* ================= REPORTS ================= */
+const RCFG = {
+  rs: {title:'Site report', group:'site',  mode:'both'},
+  ri: {title:'Income report', group:'subject', mode:'inc'},
+  re: {title:'Expense report', group:'info', mode:'exp'},
+  rw: {title:'Salary report', group:'subject', mode:'sal'}
+};
+const RGROUPS = {
+  ri: [['subject','Vehicle'],['agent','Agent'],['quality','Material'],['qtype','Quality type'],['site','Site'],['date','Date']],
+  re: [['info','Category'],['subject','Employee / vehicle'],['agent','Agent'],['site','Site'],['date','Date']]
+};
+let rGroupBy = {ri:'subject', re:'info'};
+
+function isSalary(e){ return e.ctype==='EXPENSE' && expGroup(e.info)==='EMP'; }
+function isAdvance(e){ return isSalary(e) && /ADVANCE|AD PAY/.test((e.info||'').toUpperCase()); }
+function rFill(p){
+  const site = $(p+'Site'), src = $(p+'Src'), emp = $(p+'Emp'), grp = $(p+'Group');
+  if(site) fillKeepValue(site, db.sites, 'All sites');
+  if(emp)  fillKeepValue(emp, db.employees.map(e=>e.name), 'All employees');
+  if(grp && RGROUPS[p]){
+    const cur = rGroupBy[p];
+    grp.innerHTML = RGROUPS[p].map(([k,l]) => `<option value="${k}">Group by: ${l}</option>`).join('');
+    grp.value = cur;
+  }
+}
+function rRows(p){
+  rFill(p);
+  const cfg = RCFG[p];
+  const from = $(p+'From').value, to = $(p+'To').value;
+  const site = $(p+'Site') ? $(p+'Site').value : '';
+  const src  = $(p+'Src')  ? $(p+'Src').value  : '';
+  const emp  = $(p+'Emp')  ? $(p+'Emp').value  : '';
+  return db.entries.filter(e => {
+    if(from && e.date < from) return false;
+    if(to && e.date > to) return false;
+    if(site && e.site !== site) return false;
+    if(src && (src==='VEH' ? e.src!=='VEH' : e.src==='VEH')) return false;
+    if(cfg.mode==='inc' && e.ctype!=='INCOME') return false;
+    if(cfg.mode==='exp' && e.ctype!=='EXPENSE') return false;
+    if(cfg.mode==='sal'){
+      if(!isSalary(e)) return false;
+      if(emp && e.subject !== emp) return false;
+    }
+    return true;
+  }).sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
+}
+function rTotals(p, rows){
+  const t = {inc:0, exp:0, got:0, paid:0, rec:0, pay:0, wage:0, ot:0, adv:0};
+  rows.forEach(e => {
+    if(e.ctype==='INCOME'){
+      t.inc += e.amount||0; t.got += e.advance||0;
+      if(e.status==='PENDING') t.rec += e.balance||0;
+    } else {
+      t.exp += e.amount||0; t.paid += e.advance||0;
+      if(e.status==='PENDING') t.pay += e.balance||0;
+      if(p==='rw'){
+        if(isAdvance(e)) t.adv += e.amount||0;
+        else { t.wage += (e.basic || ((e.amount||0) - (e.otAmt||0))); t.ot += e.otAmt||0; }
+      }
+    }
+  });
+  t.net = t.inc - t.exp;
+  if(p==='rw'){
+    t.earned = t.wage + t.ot;
+    t.wpaid = t.paid - rows.filter(isAdvance).reduce((s,e)=>s+(e.advance||0),0);
+    t.due = t.earned - t.adv - t.wpaid;
+  }
+  return t;
+}
+function rKey(p, e){
+  const g = RCFG[p].group==='site' ? 'site' : (rGroupBy[p] || RCFG[p].group);
+  const v = e[g];
+  if(g==='date') return e.date || '—';
+  return v || (g==='subject' ? '—' : 'Not specified');
+}
+function rGroup(p, rows){
+  const by = {};
+  rows.forEach(e => {
+    const k = rKey(p, e);
+    (by[k] = by[k] || []).push(e);
+  });
+  return by;
+}
+function rQuick(p, days){
+  if(!days){ $(p+'From').value=''; $(p+'To').value=''; }
+  else { $(p+'To').value = today(); $(p+'From').value = new Date(Date.now()-(days-1)*86400000).toISOString().slice(0,10); }
+  const btns = $('page-'+p).querySelectorAll('.qbtn button');
+  btns.forEach(b => b.classList.toggle('on', b.textContent === (days ? days+' days' : 'All')));
+  renderReportPage(p);
+}
+function renderReportPage(p){
+  const rows = rRows(p), t = rTotals(p, rows);
+  const S = (id, v) => { const el = $(id); if(el) el.textContent = v; };
+  if(p==='rs'){
+    S('rsIn', fmt(t.inc)); S('rsOut', fmt(t.exp)); S('rsNet', sfmt(t.net));
+    S('rsRec', fmt(t.rec)); S('rsPay', fmt(t.pay));
+  }
+  if(p==='ri'){ S('riIn', fmt(t.inc)); S('riGot', fmt(t.got)); S('riDue', fmt(t.rec)); }
+  if(p==='re'){ S('reOut', fmt(t.exp)); S('rePaid', fmt(t.paid)); S('reDue', fmt(t.pay)); }
+  if(p==='rw'){
+    S('rwWage', fmt(t.wage)); S('rwOt', fmt(t.ot)); S('rwAdv', '− ' + fmt(t.adv));
+    S('rwPaid', fmt(t.wpaid)); S('rwDue', sfmt(t.due));
+  }
+  const by = rGroup(p, rows);
+  const keys = Object.keys(by).sort((a,b) => {
+    const x = rTotals(p, by[a]), y = rTotals(p, by[b]);
+    const val = o => p==='rw' ? o.due : (p==='re' ? o.exp : (p==='ri' ? o.inc : o.net));
+    return val(y) - val(x);
+  });
+  if(!rows.length){
+    $(p+'Body').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><use href="#${p==='rw'?'i-person':'i-chart'}"/></svg><br>No entries for this selection.</div>`;
+    return;
+  }
+  const gi = p==='rw' ? 'i-person' : (p==='re' ? 'i-fuel' : (p==='rs' ? 'i-land' : 'i-lorry'));
+  $(p+'Body').innerHTML = keys.map(k => {
+    const g = rTotals(p, by[k]);
+    let rows_html = '', head;
+    if(p==='rs'){
+      head = sfmt(g.net);
+      rows_html = `<div class="gr"><span class="k">Income</span><span class="v g">${fmt(g.inc)}</span></div>
+        <div class="gr"><span class="k">Expense</span><span class="v r">${fmt(g.exp)}</span></div>
+        <div class="gr tot"><span class="k">Net</span><span class="v ${g.net>=0?'g':'r'}">${sfmt(g.net)}</span></div>
+        <div class="gr"><span class="k">To collect</span><span class="v">${fmt(g.rec)}</span></div>
+        <div class="gr"><span class="k">To pay</span><span class="v">${fmt(g.pay)}</span></div>`;
+    } else if(p==='ri'){
+      head = fmt(g.inc);
+      rows_html = `<div class="gr"><span class="k">Entries</span><span class="v">${by[k].length}</span></div>
+        <div class="gr"><span class="k">Received</span><span class="v">${fmt(g.got)}</span></div>
+        <div class="gr tot"><span class="k">To collect</span><span class="v ${g.rec?'r':''}">${fmt(g.rec)}</span></div>`;
+    } else if(p==='re'){
+      head = fmt(g.exp);
+      rows_html = `<div class="gr"><span class="k">Entries</span><span class="v">${by[k].length}</span></div>
+        <div class="gr"><span class="k">Paid</span><span class="v">${fmt(g.paid)}</span></div>
+        <div class="gr tot"><span class="k">To pay</span><span class="v ${g.pay?'r':''}">${fmt(g.pay)}</span></div>`;
+    } else {
+      head = sfmt(g.due);
+      rows_html = `<div class="gr"><span class="k">Wages earned</span><span class="v">${fmt(g.wage)}</span></div>
+        <div class="gr"><span class="k">Overtime</span><span class="v">${fmt(g.ot)}</span></div>
+        <div class="gr"><span class="k">Advance paid</span><span class="v r">− ${fmt(g.adv)}</span></div>
+        <div class="gr"><span class="k">Paid against wages</span><span class="v">${fmt(g.wpaid)}</span></div>
+        <div class="gr tot"><span class="k">Balance payable</span><span class="v ${g.due>0?'r':'g'}">${sfmt(g.due)}</span></div>`;
+    }
+    return `<div class="grp num"><div class="gh"><span class="gi">${icon(gi)}</span><span class="gt">${esc(k)}</span><span class="gn ${head.startsWith('−')?'r':''}">${head}</span></div><div class="gb">${rows_html}</div></div>`;
+  }).join('');
+}
+['rs','ri','re','rw'].forEach(p => {
+  ['From','To','Site','Src','Emp','Group'].forEach(sfx => {
+    const el = $(p+sfx);
+    if(el) el.addEventListener('change', () => {
+      if(sfx==='Group') rGroupBy[p] = el.value;
+      renderReportPage(p);
+    });
+  });
+});
+function rCsv(p){
+  const rows = rRows(p);
+  if(!rows.length){ toast('Nothing to export'); return; }
+  csvDownload(rows, `ptbrother-${p==='rs'?'site':p==='ri'?'income':p==='re'?'expense':'salary'}-${$(p+'From').value||'start'}_to_${$(p+'To').value||today()}.csv`);
+  toast('CSV downloaded');
+}
+function rPdf(p){
+  const rows = rRows(p);
+  if(!rows.length){ toast('Nothing to print'); return; }
+  printDoc(rHtml(p, rows));
+}
+function rHtml(p, rows){
+  const cfg = RCFG[p], t = rTotals(p, rows);
+  const money = n => '₹' + (Number(n)||0).toLocaleString('en-IN');
+  const sg = n => (n<0?'− ':'') + money(Math.abs(n));
+  const from = $(p+'From').value || '—', to = $(p+'To').value || today();
+  const site = $(p+'Site') && $(p+'Site').value ? $(p+'Site').value : 'All sites';
+  const src  = $(p+'Src') ? ($(p+'Src').value==='VEH' ? 'Vehicle ledger' : ($(p+'Src').value==='Q' ? 'Quarry ledger' : 'Quarry + Vehicle')) : 'Quarry + Vehicle';
+  const emp  = $(p+'Emp') && $(p+'Emp').value ? $(p+'Emp').value : 'All employees';
+  const scope = p==='rw' ? emp : `${site} · ${src}`;
+  const by = rGroup(p, rows);
+  const keys = Object.keys(by).sort();
+  const cols = p==='rw'
+    ? ['Date','Period','Days','Rate','Wage','OT','Amount','Paid','Balance']
+    : ['Date','Site','Vehicle / name','Quality type','Material / item','Rate','Qty','Income','Expense'];
+  const line = e => p==='rw'
+    ? `<tr><td>${esc(e.date)}</td><td>${e.wkFrom?esc(e.wkFrom)+' – '+esc(e.wkTo):(esc(e.info||''))}</td>
+        <td class="n">${e.days||''}</td><td class="n">${e.dayRate||''}</td><td class="n">${e.basic?money(e.basic):''}</td>
+        <td class="n">${e.otAmt?money(e.otAmt):''}</td><td class="n b">${money(e.amount)}</td>
+        <td class="n">${money(e.advance)}</td><td class="n ${e.balance>0?'r b':''}">${e.balance>0?money(e.balance):'—'}</td></tr>`
+    : `<tr><td>${esc(e.date)}</td><td>${esc(e.site)}</td><td>${esc(e.subject)}</td><td>${esc(e.qtype||'')}</td>
+        <td>${esc(e.quality||e.info||'')}</td><td class="n">${e.rate!=null?e.rate:''}</td><td class="n">${e.qty!=null?e.qty:''}</td>
+        <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td><td class="n r">${e.ctype==='EXPENSE'?money(e.amount):''}</td></tr>`;
+  let body = '';
+  keys.forEach(k => {
+    const g = rTotals(p, by[k]);
+    body += `<tr class="grp"><td colspan="${cols.length}">${esc(k)}</td></tr>`;
+    body += by[k].map(line).join('');
+    if(p==='rw'){
+      body += `<tr class="sub"><td colspan="6">Subtotal — ${esc(k)}</td><td class="n">${money(g.earned)}</td><td class="n">${money(g.paid)}</td><td class="n">${sg(g.due)}</td></tr>`;
+    } else if(p==='rs'){
+      body += `<tr class="sub"><td colspan="7">Subtotal — ${esc(k)}</td><td class="n">${money(g.inc)}</td><td class="n r">${money(g.exp)}</td></tr>`;
+      body += `<tr class="sub net"><td colspan="8">Net — ${esc(k)}</td><td class="n">${sg(g.net)}</td></tr>`;
+    } else {
+      const v = p==='ri' ? g.inc : g.exp;
+      body += `<tr class="sub net"><td colspan="8">Total — ${esc(k)}</td><td class="n">${money(v)}</td></tr>`;
+    }
+  });
+  const foot = p==='rw'
+    ? `<tr class="first"><td colspan="${cols.length-1}">WAGES EARNED (incl. overtime)</td><td class="n">${money(t.earned)}</td></tr>
+       <tr><td colspan="${cols.length-1}">LESS: ADVANCE PAID</td><td class="n r">− ${money(t.adv)}</td></tr>
+       <tr><td colspan="${cols.length-1}">LESS: PAID AGAINST WAGES</td><td class="n r">− ${money(t.wpaid)}</td></tr>
+       <tr class="grand"><td colspan="${cols.length-1}">BALANCE PAYABLE</td><td class="n">${sg(t.due)}</td></tr>`
+    : p==='rs'
+    ? `<tr class="first"><td colspan="${cols.length-1}">TOTAL INCOME</td><td class="n">${money(t.inc)}</td></tr>
+       <tr><td colspan="${cols.length-1}">TOTAL EXPENSE</td><td class="n r">− ${money(t.exp)}</td></tr>
+       <tr class="grand"><td colspan="${cols.length-1}">NET</td><td class="n">${sg(t.net)}</td></tr>
+       <tr><td colspan="${cols.length-1}">To collect / To pay</td><td class="n">${money(t.rec)} / ${money(t.pay)}</td></tr>`
+    : p==='ri'
+    ? `<tr class="first"><td colspan="${cols.length-1}">TOTAL INCOME</td><td class="n">${money(t.inc)}</td></tr>
+       <tr><td colspan="${cols.length-1}">Received</td><td class="n">${money(t.got)}</td></tr>
+       <tr class="grand"><td colspan="${cols.length-1}">TO COLLECT</td><td class="n">${money(t.rec)}</td></tr>`
+    : `<tr class="first"><td colspan="${cols.length-1}">TOTAL EXPENSE</td><td class="n r">${money(t.exp)}</td></tr>
+       <tr><td colspan="${cols.length-1}">Paid</td><td class="n">${money(t.paid)}</td></tr>
+       <tr class="grand"><td colspan="${cols.length-1}">TO PAY</td><td class="n">${money(t.pay)}</td></tr>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${cfg.title}</title><style>
+    @page{size:A4 landscape;margin:10mm}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:11px}
+    h1{font-size:17px;letter-spacing:.06em;margin:0 0 2px}
+    .t2{font-size:14px;font-weight:800;color:#0b4f43;margin-top:3px}
+    .sub2{font-size:10.5px;color:#5d655a}
+    .head{border-bottom:2px solid #0b4f43;padding-bottom:7px;margin-bottom:11px}
+    table{width:100%;border-collapse:collapse}
+    th{background:#0b4f43;color:#fff;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;text-align:left;padding:5px}
+    td{padding:4px 5px;border-bottom:1px solid #e9e4d6}
+    tr.grp td{background:#f1ece1;font-weight:800;font-size:11px;color:#0b4f43;border-top:1px solid #cfc7b2;letter-spacing:.03em}
+    tr.sub td{font-weight:700;background:#fbfaf6}
+    tr.sub.net td{font-weight:800;background:#eef4f0;color:#0b4f43;font-size:11.5px}
+    .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+    .b{font-weight:700} .r{color:#c24a22} .g{color:#1e7a46}
+    tfoot td{border-bottom:none;font-weight:800;font-size:12px;padding-top:5px}
+    tfoot tr.first td{border-top:2px solid #0b4f43;padding-top:8px}
+    tfoot tr.grand td{border-top:1.5px solid #0b4f43;font-size:14px;background:#eef4f0;padding-top:7px}
+    .foot{margin-top:12px;font-size:9.5px;color:#8a9185;text-align:center}
+  </style></head><body>
+    <div class="head">
+      <h1>PT BROTHER</h1>
+      <div class="t2">${cfg.title}</div>
+      <div class="sub2">${esc(scope)} &nbsp;·&nbsp; Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries &nbsp;·&nbsp; Printed ${esc(today())}</div>
+    </div>
+    <table>
+      <thead><tr>${cols.map((c,i) => `<th${i>=5?' class="n"':''}>${c}</th>`).join('')}</tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot>${foot}</tfoot>
+    </table>
+    <div class="foot">PT Brother app</div>
+  </body></html>`;
+}
+
 /* ================= MANAGE ================= */
 function renderMenu(){
   $('cSites').textContent = db.sites.length;
@@ -1344,7 +1755,7 @@ function download(name, text, type){
   setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
 }
 function exportJSON(){
-  download(`ansar-backup-${today()}.json`, JSON.stringify(db,null,2), 'application/json');
+  download(`ptbrother-backup-${today()}.json`, JSON.stringify(db,null,2), 'application/json');
   toast('Backup downloaded');
 }
 function rpQuick(days){
@@ -1440,110 +1851,95 @@ function blCsv(){
   const rows = blRows();
   if(!rows.length){ toast('Nothing to export'); return; }
   const a = $('blAgent').value || 'all-agents';
-  csvDownload(rows, `ansar-bill-${a.replace(/\s+/g,'')}-${$('blFrom').value||'start'}_to_${$('blTo').value||today()}.csv`);
+  csvDownload(rows, `ptbrother-bill-${a.replace(/\s+/g,'')}-${$('blFrom').value||'start'}_to_${$('blTo').value||today()}.csv`);
   toast('Bill CSV downloaded');
 }
 function blHtml(rows){
   const agent = $('blAgent').value || 'All agents';
   const from = $('blFrom').value || '—', to = $('blTo').value || today();
   const money = n => '₹' + (Number(n)||0).toLocaleString('en-IN');
-  const sgn = n => (n<0?'− ':'') + money(Math.abs(n));
-  const line = e => `<tr class="${e.ctype==='INCOME'?'in':'ex'}">
+  const sg = n => (n<0?'− ':'') + money(Math.abs(n));
+
+  // group by vehicle across both ledgers; unlinked entries go last
+  const byVeh = {}, other = [];
+  rows.forEach(e => {
+    if(db.vehicles.includes(e.subject)) (byVeh[e.subject] = byVeh[e.subject] || []).push(e);
+    else other.push(e);
+  });
+  const sum = list => {
+    let i=0,o=0,got=0;
+    list.forEach(e => { if(e.ctype==='INCOME'){ i+=e.amount||0; got+=e.advance||0; } else o+=e.amount||0; });
+    return {i,o,net:i-o,got};
+  };
+  const line = e => `<tr>
       <td>${esc(e.date)}</td>
-      <td>${esc(e.qtype||'')}</td>
-      <td>${esc(e.quality||e.info||'')}</td>
-      <td class="n">${e.rate!=null?e.rate:''}</td>
+      <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}</td>
       <td class="n">${e.qty!=null?e.qty:''}</td>
+      <td class="n">${e.rate!=null?e.rate:''}</td>
       <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td>
       <td class="n r">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
     </tr>`;
 
-  // ledger sections -> vehicle sub-headings -> entries -> vehicle subtotal
-  const ledgers = [];
-  const pick = (src, title) => {
-    const list = rows.filter(e => src==='VEH' ? e.src==='VEH' : e.src!=='VEH');
-    if(list.length) ledgers.push({title, list});
+  let body = '', T = {i:0,o:0,got:0};
+  const block = (name, list) => {
+    const g = sum(list);
+    T.i += g.i; T.o += g.o; T.got += g.got;
+    body += `<tr class="veh"><td colspan="4">${esc(name)}</td><td class="n">${g.i?money(g.i):''}</td><td class="n r">${g.o?money(g.o):''}</td></tr>`;
+    body += list.map(line).join('');
+    body += `<tr class="vnet"><td colspan="5">Net — ${esc(name)}</td><td class="n">${sg(g.net)}</td></tr>`;
   };
-  if($('blSrc').value === 'VEH') pick('VEH','Vehicle ledger');
-  else if($('blSrc').value === 'Q') pick('Q','Quarry ledger');
-  else { pick('Q','Quarry ledger'); pick('VEH','Vehicle ledger'); }
+  Object.keys(byVeh).sort().forEach(v => block(v, byVeh[v]));
+  if(other.length) block('Other (not vehicle-wise)', other);
 
-  let html = '', vehNetAll = 0, otherExpAll = 0, incAll = 0, expAll = 0, gotAll = 0;
-  ledgers.forEach(L => {
-    html += `<tr class="led"><td colspan="7">${esc(L.title)}</td></tr>`;
-    const byVeh = {}, other = [];
-    L.list.forEach(e => {
-      if(db.vehicles.includes(e.subject)) (byVeh[e.subject] = byVeh[e.subject] || []).push(e);
-      else other.push(e);
-    });
-    let ledNet = 0;
-    Object.keys(byVeh).sort().forEach(v => {
-      const list = byVeh[v];
-      let i = 0, o = 0;
-      list.forEach(e => { if(e.ctype==='INCOME'){ i += e.amount||0; gotAll += e.advance||0; } else o += e.amount||0; });
-      incAll += i; expAll += o; vehNetAll += (i-o); ledNet += (i-o);
-      html += `<tr class="veh"><td colspan="7">${esc(v)}</td></tr>`;
-      html += list.map(line).join('');
-      html += `<tr class="sub"><td colspan="3">Subtotal — ${esc(v)}</td><td class="n" colspan="2"></td><td class="n">${money(i)}</td><td class="n r">${o?money(o):''}</td></tr>`;
-      html += `<tr class="sub net"><td colspan="6">Net for ${esc(v)}</td><td class="n">${sgn(i-o)}</td></tr>`;
-    });
-    if(other.length){
-      let o = 0, i = 0;
-      other.forEach(e => { if(e.ctype==='EXPENSE') o += e.amount||0; else { i += e.amount||0; gotAll += e.advance||0; } });
-      incAll += i; expAll += o; otherExpAll += o; vehNetAll += i;
-      html += `<tr class="veh"><td colspan="7">Not linked to a vehicle</td></tr>`;
-      html += other.map(line).join('');
-      html += `<tr class="sub net"><td colspan="6">Total — not linked to a vehicle</td><td class="n">${sgn(i-o)}</td></tr>`;
-      ledNet += (i-o);
-    }
-    if(ledgers.length > 1) html += `<tr class="ledtot"><td colspan="6">${esc(L.title)} total</td><td class="n">${sgn(ledNet)}</td></tr>`;
-  });
-
-  const grand = incAll - expAll;
-  const due = grand - gotAll;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Agent bill — ${esc(agent)}</title><style>
-    @page{size:A4;margin:12mm}
-    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:11.5px}
-    h1{font-size:18px;letter-spacing:.06em;margin:0 0 2px}
-    .agent{font-size:15px;font-weight:800;color:#0b4f43;margin-top:4px}
-    .sub2{font-size:11px;color:#5d655a}
-    .head{border-bottom:2px solid #0b4f43;padding-bottom:8px;margin-bottom:12px}
+  const grand = T.i - T.o, due = grand - T.got;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bill — ${esc(agent)}</title><style>
+    @page{size:A4;margin:14mm}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1e241d;margin:0;font-size:11.5px;line-height:1.45}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0b4f43;padding-bottom:10px;margin-bottom:16px}
+    .brand{font-size:19px;font-weight:800;letter-spacing:.07em;color:#0b4f43}
+    .brand span{display:block;font-size:9.5px;font-weight:600;letter-spacing:.18em;color:#8a9185;margin-top:2px}
+    .meta{text-align:right;font-size:10.5px;color:#6e7568}
+    .meta b{color:#1e241d}
+    .to{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:#8a9185}
+    .who{font-size:20px;font-weight:800;color:#0b4f43;margin:1px 0 14px}
     table{width:100%;border-collapse:collapse}
-    th{background:#0b4f43;color:#fff;font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:left;padding:6px}
-    td{padding:5px 6px;border-bottom:1px solid #e9e4d6;vertical-align:top}
-    tr.led td{background:#0b4f43;color:#fff;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px}
-    tr.veh td{background:#f1ece1;font-weight:800;font-size:11.5px;letter-spacing:.04em;color:#0b4f43;border-top:1px solid #cfc7b2}
-    tr.sub td{font-weight:700;background:#fbfaf6;border-bottom:1px solid #d9d2bf}
-    tr.sub.net td{font-weight:800;background:#eef4f0;color:#0b4f43;font-size:12.5px}
-    tr.ledtot td{font-weight:800;background:#e3ece7;border-top:1.5px solid #0b4f43;font-size:12.5px}
+    th{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#6e7568;text-align:left;padding:0 8px 6px;border-bottom:1px solid #cfc7b2}
+    td{padding:5px 8px;border-bottom:1px solid #f0ece1}
+    .q{color:#8a9185;font-size:9.5px}
+    tr.veh td{background:#f4f1e8;font-weight:800;font-size:12px;color:#0b4f43;letter-spacing:.03em;padding:7px 8px;border-bottom:1px solid #ddd5c2}
+    tr.vnet td{font-weight:800;font-size:12px;color:#0b4f43;background:#fcfbf7;border-bottom:1px solid #ddd5c2}
     .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     .r{color:#c24a22}
-    tfoot td{border-bottom:none;font-weight:800;font-size:12.5px;padding-top:6px}
-    tfoot tr.first td{border-top:2px solid #0b4f43;padding-top:9px}
-    tfoot tr.grand td{border-top:1.5px solid #0b4f43;font-size:15px;padding-top:8px;background:#eef4f0}
-    tfoot tr.due td{border-top:1px solid #0b4f43;font-size:14px}
-    .foot{margin-top:14px;font-size:10px;color:#8a9185;text-align:center}
-    .sign{margin-top:26px;display:flex;justify-content:space-between;font-size:11px;color:#5d655a}
-    .sign div{border-top:1px solid #a9b0a4;padding-top:5px;width:38%;text-align:center}
+    .sumwrap{margin-top:18px;display:flex;justify-content:flex-end}
+    .sum{width:62%}
+    .sum div{display:flex;justify-content:space-between;padding:5px 10px;font-size:12px}
+    .sum div.sep{border-top:1px solid #cfc7b2;margin-top:3px;padding-top:7px}
+    .sum div.net{background:#0b4f43;color:#fff;font-weight:800;font-size:14px;border-radius:5px;margin-top:5px;padding:9px 10px}
+    .sum div.due{background:#f4f1e8;color:#0b4f43;font-weight:800;font-size:14px;border-radius:5px;margin-top:4px;padding:9px 10px}
+    .sign{margin-top:46px;display:flex;justify-content:space-between;font-size:10px;color:#6e7568}
+    .sign div{border-top:1px solid #a9b0a4;padding-top:5px;width:36%;text-align:center}
+    .foot{margin-top:16px;font-size:9px;color:#a2a89c;text-align:center;letter-spacing:.06em}
   </style></head><body>
-    <div class="head">
-      <h1>ANSAR BUSINESS</h1>
-      <div class="agent">Bill to: ${esc(agent)}</div>
-      <div class="sub2">Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries &nbsp;·&nbsp; Date: ${esc(today())}</div>
+    <div class="top">
+      <div class="brand">PT BROTHER<span>Transport &amp; Earth Work</span></div>
+      <div class="meta">Bill date <b>${esc(today())}</b><br>Period <b>${esc(from)} – ${esc(to)}</b><br>${rows.length} entries</div>
     </div>
+    <div class="to">Bill to</div>
+    <div class="who">${esc(agent)}</div>
     <table>
-      <thead><tr><th>Date</th><th>Quality type</th><th>Material / item</th><th class="n">Rate</th><th class="n">Qty</th><th class="n">Income</th><th class="n">Expense</th></tr></thead>
-      <tbody>${html}</tbody>
-      <tfoot>
-        <tr class="first"><td colspan="6">TOTAL INCOME (all vehicles)</td><td class="n">${money(incAll)}</td></tr>
-        <tr><td colspan="6">TOTAL EXPENSE PAID BY AGENT</td><td class="n r">− ${money(expAll)}</td></tr>
-        <tr class="grand"><td colspan="6">GRAND TOTAL — NET PAYABLE</td><td class="n">${sgn(grand)}</td></tr>
-        <tr><td colspan="6">Already received</td><td class="n">${money(gotAll)}</td></tr>
-        <tr class="due"><td colspan="6">BALANCE DUE</td><td class="n">${sgn(due)}</td></tr>
-      </tfoot>
+      <thead><tr><th style="width:15%">Date</th><th>Material / item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Income</th><th class="n">Expense</th></tr></thead>
+      <tbody>${body}</tbody>
     </table>
-    <div class="sign"><div>Agent signature</div><div>For Ansar Business</div></div>
-    <div class="foot">Generated ${esc(today())} · Ansar Business app</div>
+    <div class="sumwrap"><div class="sum">
+      <div><span>Total income</span><span>${money(T.i)}</span></div>
+      <div><span>Less: expenses paid by agent</span><span class="r">− ${money(T.o)}</span></div>
+      <div class="net"><span>NET PAYABLE</span><span>${sg(grand)}</span></div>
+      <div class="sep"><span>Already received</span><span>${money(T.got)}</span></div>
+      <div class="due"><span>BALANCE DUE</span><span>${sg(due)}</span></div>
+    </div></div>
+    <div class="sign"><div>${esc(agent)}</div><div>For PT Brother</div></div>
+    <div class="foot">Generated by the PT Brother app</div>
   </body></html>`;
 }
 function blPdf(){
@@ -1586,7 +1982,7 @@ function rpHtml(rows){
       <td class="n ${e.balance>0?'r b':''}">${e.balance>0?money(e.balance):'—'}</td>
     </tr>`;
   }).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ansar Business report</title><style>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>PT Brother report</title><style>
     @page{size:A4;margin:12mm}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:12px}
@@ -1607,7 +2003,7 @@ function rpHtml(rows){
     .foot{margin-top:14px;font-size:10px;color:#8a9185;text-align:center}
   </style></head><body>
     <div class="head">
-      <h1>ANSAR BUSINESS</h1>
+      <h1>PT BROTHER</h1>
       <div class="sub">Vehicle report · ${esc(sec)}</div>
       <div class="sub">Vehicle: <b>${esc(v)}</b> &nbsp;·&nbsp; Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries</div>
     </div>
@@ -1621,7 +2017,7 @@ function rpHtml(rows){
         <tr><td colspan="6">RECEIVED − PAID (cash in hand)</td><td class="n" colspan="3">${got-paid<0?'− ':''}${money(Math.abs(got-paid))}</td></tr>
       </tfoot>
     </table>
-    <div class="foot">Generated ${esc(today())} · Ansar Business app</div>
+    <div class="foot">Generated ${esc(today())} · PT Brother app</div>
   </body></html>`;
 }
 function rpPdf(){
@@ -1634,7 +2030,7 @@ function rpExport(){
   if(!rows.length){ toast('Nothing to export'); return; }
   const v = $('rpVehicle').value || 'all-vehicles';
   const period = [$('rpFrom').value||'start', $('rpTo').value||today()].join('_to_');
-  csvDownload(rows, `ansar-report-${v.replace(/\s+/g,'')}-${period}.csv`);
+  csvDownload(rows, `ptbrother-report-${v.replace(/\s+/g,'')}-${period}.csv`);
   toast('Report downloaded');
 }
 function csvDownload(list, name){
@@ -1643,7 +2039,7 @@ function csvDownload(list, name){
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(name, [head.join(','),...rows].join('\n'), 'text/csv');
 }
-function exportCSV(){ csvDownload(db.entries, `ansar-entries-${today()}.csv`); toast('CSV downloaded'); }
+function exportCSV(){ csvDownload(db.entries, `ptbrother-entries-${today()}.csv`); toast('CSV downloaded'); }
 function importJSON(input){
   const f = input.files[0]; if(!f) return;
   const r = new FileReader();
