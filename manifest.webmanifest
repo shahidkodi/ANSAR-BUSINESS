@@ -1,7 +1,7 @@
 {
-  "name": "PT Brother",
-  "short_name": "PT Brother",
-  "description": "Income, expense and vehicle tracking for PT Brother",
+  "name": "PT Brothers",
+  "short_name": "PT Brothers",
+  "description": "Income, expense and vehicle tracking for PT Brothers",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

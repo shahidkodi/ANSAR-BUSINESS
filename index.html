@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>PT Brother</title>
+<title>PT Brothers</title>
 <style>
 :root{
   --green:#0B4F43; --green-2:#0E5A4C; --green-dark:#083A31;
@@ -266,6 +266,12 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 .grp .gr .v{font-weight:700}
 .grp .gr.tot{border-top:1.5px solid var(--border);margin-top:2px;padding-top:9px;font-size:15px}
 .grp .gr.tot .k{color:var(--ink);font-weight:800}
+.mlist li.lock .nm{color:var(--muted)}
+.mlist button.lk{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:4px}
+.mlist .use{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:99px;background:var(--amber-bg);border:1px solid #EBD58F;color:#7A6208;margin-left:6px;vertical-align:1px}
+.mlist .use.map{background:var(--expense-bg);border-color:#EBB9A4;color:var(--expense)}
+.delall{margin-top:12px}
+.delall .btn{background:var(--card);color:var(--expense);border:1px solid #EBB9A4;font-weight:700}
 /* ---------- Manage menu ---------- */
 .mmenu{list-style:none}
 .mmenu li{display:flex; align-items:center; gap:12px; padding:14px 2px; border-bottom:1px solid var(--border); cursor:pointer}
@@ -347,7 +353,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 <aside class="drawer" id="drawer">
   <div class="dhead">
     <div class="mark"><svg class="ic"><use href="#i-lorry"/></svg></div>
-    <div><div class="s">Ledger Menu</div><div class="t">PT BROTHER</div></div>
+    <div><div class="s">Ledger Menu</div><div class="t">PT BROTHERS</div></div>
   </div>
   <button class="item" onclick="go('dash')"><svg class="ic"><use href="#i-chart"/></svg>Dashboard</button>
   <button class="item" onclick="go('d-reminders')"><svg class="ic"><use href="#i-bell"/></svg>Payment reminders</button>
@@ -373,7 +379,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="mark"><svg class="ic"><use href="#i-lorry"/></svg></div>
   <div>
     <div class="sub">Transport &amp; Earth Work Ledger</div>
-    <h1>PT BROTHER</h1>
+    <h1>PT BROTHERS</h1>
   </div>
   <div class="date num" id="todayLabel"></div>
 </header>
@@ -832,6 +838,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mSites"></ul>
     <div class="addrow"><input id="addSite" placeholder="New site name"><button class="btn" onclick="addMaster('sites','addSite')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('sites','Sites')">Delete all unused sites</button></div>
   </div>
 </div>
 
@@ -839,7 +846,9 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Vehicles <svg class="ic"><use href="#i-lorry"/></svg></span></div>
   <div class="card">
     <ul class="mlist" id="mVehicles"></ul>
+    <p class="hint" style="margin-top:0">A vehicle mapped to an agent shows 🔒 and cannot be removed — unmap it from the agent first. Anything used by saved entries asks for the delete password.</p>
     <div class="addrow"><input id="addVehicle" placeholder="e.g. KL 10 B 2363"><button class="btn" onclick="addMaster('vehicles','addVehicle')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('vehicles','Vehicles')">Delete all unused vehicles</button></div>
   </div>
 </div>
 
@@ -850,6 +859,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="addrow"><input id="addEmpName" placeholder="Name" style="flex:1.2"><input id="addEmpContact" placeholder="Contact" inputmode="tel"><select id="addEmpType"><option>DRIVER</option><option>COOLIE</option><option>OPERATOR</option><option>OTHER</option></select></div>
     <div class="addrow"><input id="addEmpDay" placeholder="Daily wage ₹" inputmode="decimal"><input id="addEmpOt" placeholder="OT ₹ / hour" inputmode="decimal"></div>
     <div class="addrow"><button class="btn" onclick="addEmployee()" style="width:100%">Add employee</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('employees','Employees')">Delete all unused employees</button></div>
   </div>
 </div>
 
@@ -858,6 +868,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mAgents"></ul>
     <div class="addrow"><input id="addAgent" placeholder="Agent name"><button class="btn" onclick="addMaster('agents','addAgent')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('agents','Agents')">Delete all unused agents</button></div>
   </div>
 </div>
 
@@ -866,6 +877,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mCats"></ul>
     <div class="addrow"><input id="addCat" placeholder="e.g. INSURANCE"><button class="btn" onclick="addMaster('expenseCats','addCat')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('expenseCats','Categories')">Delete all unused categories</button></div>
   </div>
 </div>
 
@@ -874,7 +886,8 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <h2><svg class="ic"><use href="#i-lorry"/></svg>Vehicles of this agent</h2>
     <ul class="mlist" id="agVehicles"></ul>
-    <p class="hint">Tick the lorries that belong to this agent. When you pick the agent on an entry, only these vehicle numbers are offered. With none ticked, all vehicles are shown.</p>
+    <p class="hint">Tick the lorries that belong to this agent. Only these vehicle numbers are offered when you pick this agent on an entry. A vehicle cannot be removed from Manage while it is mapped here.</p>
+    <div class="delall"><button class="btn" onclick="delAgentNow()">Delete this agent</button></div>
   </div>
 </div>
 
@@ -883,6 +896,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mMach"></ul>
     <div class="addrow"><input id="addMach" placeholder="e.g. EXCAVATOR 2, TRACTOR"><button class="btn" onclick="addMaster('machines','addMach')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('machines','Machines')">Delete all unused machines</button></div>
   </div>
 </div>
 
@@ -891,11 +905,13 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   <div class="card">
     <ul class="mlist" id="mQual"></ul>
     <div class="addrow"><input id="addQual" placeholder="e.g. METAL 40MM"><button class="btn" onclick="addMaster('qualities','addQual')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('qualities','Materials')">Delete all unused materials</button></div>
   </div>
   <div class="card">
     <h2><svg class="ic"><use href="#i-chart"/></svg>Quality types</h2>
     <ul class="mlist" id="mQType"></ul>
     <div class="addrow"><input id="addQType" placeholder="e.g. FOURTH QUALITY"><button class="btn" onclick="addMaster('qualityTypes','addQType')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('qualityTypes','Quality types')">Delete all unused quality types</button></div>
   </div>
 </div>
 
@@ -1567,7 +1583,7 @@ function renderReportPage(p){
 function rCsv(p){
   const rows = rRows(p);
   if(!rows.length){ toast('Nothing to export'); return; }
-  csvDownload(rows, `ptbrother-${p==='rs'?'site':p==='ri'?'income':p==='re'?'expense':'salary'}-${$(p+'From').value||'start'}_to_${$(p+'To').value||today()}.csv`);
+  csvDownload(rows, `ptbrothers-${p==='rs'?'site':p==='ri'?'income':p==='re'?'expense':'salary'}-${$(p+'From').value||'start'}_to_${$(p+'To').value||today()}.csv`);
   toast('CSV downloaded');
 }
 function rPdf(p){
@@ -1650,7 +1666,7 @@ function rHtml(p, rows){
     .foot{margin-top:12px;font-size:9.5px;color:#8a9185;text-align:center}
   </style></head><body>
     <div class="head">
-      <h1>PT BROTHER</h1>
+      <h1>PT BROTHERS</h1>
       <div class="t2">${cfg.title}</div>
       <div class="sub2">${esc(scope)} &nbsp;·&nbsp; Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries &nbsp;·&nbsp; Printed ${esc(today())}</div>
     </div>
@@ -1659,7 +1675,7 @@ function rHtml(p, rows){
       <tbody>${body}</tbody>
       <tfoot>${foot}</tfoot>
     </table>
-    <div class="foot">PT Brother app</div>
+    <div class="foot">PT Brothers app</div>
   </body></html>`;
 }
 
@@ -1674,16 +1690,27 @@ function renderMenu(){
   $('cMach').textContent = db.machines.length;
 }
 function renderManage(){
-  const li = (ic,label, sub, onDel) => `<li><span class="lic">${icon(ic)}</span><span class="nm">${label}${sub?`<div class="sub">${sub}</div>`:''}</span><button onclick="${onDel}">Remove</button></li>`;
-  $('mSites').innerHTML = db.sites.map((s,i)=>li('i-land',esc(s),'',`delMaster('sites',${i})`)).join('');
-  $('mVehicles').innerHTML = db.vehicles.map((s,i)=>li('i-lorry',esc(s),'',`delMaster('vehicles',${i})`)).join('');
+  const li = (ic, label, sub, onDel, list, raw) => {
+    const nm = raw !== undefined ? raw : label;
+    const owners = list==='vehicles' ? mappedTo(nm) : [];
+    const n = list ? useCount(list, nm) : 0;
+    const badge = owners.length
+      ? `<span class="use map">${esc(owners.join(', '))}</span>`
+      : (n ? `<span class="use">${n} used</span>` : '');
+    const btn = owners.length
+      ? `<button class="lk" onclick="${onDel}">🔒 Mapped</button>`
+      : `<button onclick="${onDel}">Remove</button>`;
+    return `<li class="${owners.length?'lock':''}"><span class="lic">${icon(ic)}</span><span class="nm">${label}${badge}${sub?`<div class="sub">${sub}</div>`:''}</span>${btn}</li>`;
+  };
+  $('mSites').innerHTML = db.sites.map((s,i)=>li('i-land',esc(s),'',`delMaster('sites',${i})`, 'sites', s)).join('');
+  $('mVehicles').innerHTML = db.vehicles.map((s,i)=>li('i-lorry',esc(s),'',`delMaster('vehicles',${i})`, 'vehicles', s)).join('');
   $('mAgents').innerHTML = db.agents.map((a,i)=>
-    `<li><span class="lic" onclick="openAgent(${i})">${icon('i-person')}</span><span class="nm" onclick="openAgent(${i})">${esc(a.name)}<div class="sub">${a.vehicles && a.vehicles.length ? esc(a.vehicles.join(', ')) : 'No vehicles assigned — tap to add'}</div></span><button onclick="delMaster('agents',${i})">Remove</button></li>`).join('');
-  $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`)).join('');
-  $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`)).join('');
-  $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`)).join('');
-  $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`)).join('');
-  $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact,e.dayRate?('₹'+e.dayRate+'/day'):'',e.otRate?('OT ₹'+e.otRate+'/hr'):''].filter(Boolean).join(' · ')), `delMaster('employees',${i})`)).join('');
+    `<li><span class="lic" onclick="openAgent(${i})">${icon('i-person')}</span><span class="nm" onclick="openAgent(${i})">${esc(a.name)}${useCount('agents',a.name)?`<span class="use">${useCount('agents',a.name)} used</span>`:''}${(a.vehicles||[]).length?`<span class="use map">${a.vehicles.length} vehicle(s)</span>`:''}<div class="sub">${a.vehicles && a.vehicles.length ? esc(a.vehicles.join(', ')) : 'No vehicles assigned — tap to add'}</div></span><button onclick="delMaster('agents',${i})">Remove</button></li>`).join('');
+  $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`, 'expenseCats', s)).join('');
+  $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`, 'machines', s)).join('');
+  $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`, 'qualityTypes', s)).join('');
+  $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`, 'qualities', s)).join('');
+  $('mEmployees').innerHTML = db.employees.map((e,i)=>li('i-person',esc(e.name), esc([e.type,e.contact,e.dayRate?('₹'+e.dayRate+'/day'):'',e.otRate?('OT ₹'+e.otRate+'/hr'):''].filter(Boolean).join(' · ')), `delMaster('employees',${i})`, 'employees', e.name)).join('');
 }
 let agIdx = null;
 function openAgent(i){ agIdx = i; showPage('m-agent'); }
@@ -1720,10 +1747,86 @@ function addEmployee(){
   db.employees.push({name, contact:$('addEmpContact').value.trim(), type:$('addEmpType').value, dayRate:+$('addEmpDay').value||null, otRate:+$('addEmpOt').value||null});
   save(); $('addEmpName').value=''; $('addEmpContact').value=''; $('addEmpDay').value=''; $('addEmpOt').value=''; renderManage(); toast('Added');
 }
+const MFIELD = {
+  sites:'site', vehicles:'subject', employees:'subject', machines:'subject',
+  agents:'agent', expenseCats:'info', qualities:'quality', qualityTypes:'qtype'
+};
+function mName(list, item){ return list==='employees' ? item.name : (list==='agents' ? item.name : item); }
+// how many saved entries use this master value
+function useCount(list, value){
+  const f = MFIELD[list];
+  if(!f || !value) return 0;
+  return db.entries.filter(e => (e[f]||'') === value).length;
+}
+// which agents have this vehicle on their fleet
+function mappedTo(vehicle){
+  return (db.agents||[]).filter(a => (a.vehicles||[]).includes(vehicle)).map(a => a.name);
+}
+function askPin(what){
+  const pin = prompt(`Enter the delete password to remove ${what}:`);
+  if(pin === null) return false;
+  if(pin !== (db.pin || '1234')){ toast('Wrong password — nothing deleted'); return false; }
+  return true;
+}
 function delMaster(list, i){
   if(list === 'sites') return delSite(i);
-  if(!confirm('Remove this item? Old entries keep their value.')) return;
-  db[list].splice(i,1); save(); renderManage();
+  const item = db[list][i]; if(item === undefined) return;
+  const name = mName(list, item);
+
+  // vehicles mapped to an agent must be unmapped first
+  if(list === 'vehicles'){
+    const owners = mappedTo(name);
+    if(owners.length){
+      alert(`"${name}" belongs to ${owners.join(', ')}.\n\nRemove it from the agent first:\nManage → Agents → ${owners[0]} → tap "${name}" to unmap.`);
+      return;
+    }
+  }
+  // agents still holding vehicles must be emptied first
+  if(list === 'agents' && (item.vehicles||[]).length){
+    alert(`"${name}" still has ${item.vehicles.length} vehicle(s) mapped:\n${item.vehicles.join(', ')}\n\nOpen the agent and unmap them before removing.`);
+    return;
+  }
+  // anything already used by saved entries needs the password
+  const n = useCount(list, name);
+  if(n){
+    if(!confirm(`"${name}" is used in ${n} saved entr${n===1?'y':'ies'}.\n\nThose entries keep the name and their amounts, but it will no longer be selectable on new entries.\n\nContinue?`)) return;
+    if(!askPin(`"${name}"`)) return;
+  } else if(!confirm(`Remove "${name}"?`)) return;
+
+  db[list].splice(i,1); save(); renderManage(); renderMenu();
+  toast(n ? `Removed "${name}" (${n} entr${n===1?'y':'ies'} kept)` : `Removed "${name}"`);
+}
+// bulk delete for one Manage tab: keeps everything still in use
+function delAll(list, label){
+  const items = db[list] || [];
+  if(!items.length){ toast('Nothing to delete'); return; }
+  const keep = [], drop = [];
+  items.forEach(it => {
+    const nm = mName(list, it);
+    const locked = (list==='vehicles' && mappedTo(nm).length) ||
+                   (list==='agents' && (it.vehicles||[]).length) ||
+                   useCount(list, nm) > 0;
+    (locked ? keep : drop).push(nm);
+  });
+  if(!drop.length){ alert(`Nothing can be deleted — all ${label.toLowerCase()} are in use or mapped to an agent.`); return; }
+  if(!confirm(`Delete ${drop.length} unused ${label.toLowerCase()}?\n\n${drop.join(', ')}\n\n${keep.length ? keep.length+' in use will be kept.' : ''}`)) return;
+  if(!askPin(`${drop.length} unused ${label.toLowerCase()}`)) return;
+  db[list] = items.filter(it => !drop.includes(mName(list, it)));
+  save(); renderManage(); renderMenu();
+  toast(`Deleted ${drop.length}${keep.length ? ', kept '+keep.length+' in use' : ''}`);
+}
+function delAgentNow(){
+  const a = db.agents[agIdx]; if(!a) return;
+  if((a.vehicles||[]).length){
+    alert(`Unmap all ${a.vehicles.length} vehicle(s) first by tapping them above.`);
+    return;
+  }
+  const n = useCount('agents', a.name);
+  if(n){
+    if(!confirm(`"${a.name}" is used in ${n} saved entr${n===1?'y':'ies'}. Those entries keep the name. Continue?`)) return;
+    if(!askPin(`agent "${a.name}"`)) return;
+  } else if(!confirm(`Remove agent "${a.name}"?`)) return;
+  db.agents.splice(agIdx,1); save(); showPage('m-agents'); toast('Agent removed');
 }
 function delSite(i){
   const site = db.sites[i]; if(!site) return;
@@ -1755,7 +1858,7 @@ function download(name, text, type){
   setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
 }
 function exportJSON(){
-  download(`ptbrother-backup-${today()}.json`, JSON.stringify(db,null,2), 'application/json');
+  download(`ptbrothers-backup-${today()}.json`, JSON.stringify(db,null,2), 'application/json');
   toast('Backup downloaded');
 }
 function rpQuick(days){
@@ -1851,7 +1954,7 @@ function blCsv(){
   const rows = blRows();
   if(!rows.length){ toast('Nothing to export'); return; }
   const a = $('blAgent').value || 'all-agents';
-  csvDownload(rows, `ptbrother-bill-${a.replace(/\s+/g,'')}-${$('blFrom').value||'start'}_to_${$('blTo').value||today()}.csv`);
+  csvDownload(rows, `ptbrothers-bill-${a.replace(/\s+/g,'')}-${$('blFrom').value||'start'}_to_${$('blTo').value||today()}.csv`);
   toast('Bill CSV downloaded');
 }
 function blHtml(rows){
@@ -1922,7 +2025,7 @@ function blHtml(rows){
     .foot{margin-top:16px;font-size:9px;color:#a2a89c;text-align:center;letter-spacing:.06em}
   </style></head><body>
     <div class="top">
-      <div class="brand">PT BROTHER<span>Transport &amp; Earth Work</span></div>
+      <div class="brand">PT BROTHERS<span>Transport &amp; Earth Work</span></div>
       <div class="meta">Bill date <b>${esc(today())}</b><br>Period <b>${esc(from)} – ${esc(to)}</b><br>${rows.length} entries</div>
     </div>
     <div class="to">Bill to</div>
@@ -1938,8 +2041,8 @@ function blHtml(rows){
       <div class="sep"><span>Already received</span><span>${money(T.got)}</span></div>
       <div class="due"><span>BALANCE DUE</span><span>${sg(due)}</span></div>
     </div></div>
-    <div class="sign"><div>${esc(agent)}</div><div>For PT Brother</div></div>
-    <div class="foot">Generated by the PT Brother app</div>
+    <div class="sign"><div>${esc(agent)}</div><div>For PT Brothers</div></div>
+    <div class="foot">Generated by the PT Brothers app</div>
   </body></html>`;
 }
 function blPdf(){
@@ -1982,7 +2085,7 @@ function rpHtml(rows){
       <td class="n ${e.balance>0?'r b':''}">${e.balance>0?money(e.balance):'—'}</td>
     </tr>`;
   }).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>PT Brother report</title><style>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>PT Brothers report</title><style>
     @page{size:A4;margin:12mm}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:12px}
@@ -2003,7 +2106,7 @@ function rpHtml(rows){
     .foot{margin-top:14px;font-size:10px;color:#8a9185;text-align:center}
   </style></head><body>
     <div class="head">
-      <h1>PT BROTHER</h1>
+      <h1>PT BROTHERS</h1>
       <div class="sub">Vehicle report · ${esc(sec)}</div>
       <div class="sub">Vehicle: <b>${esc(v)}</b> &nbsp;·&nbsp; Period: <b>${esc(from)} to ${esc(to)}</b> &nbsp;·&nbsp; ${rows.length} entries</div>
     </div>
@@ -2017,7 +2120,7 @@ function rpHtml(rows){
         <tr><td colspan="6">RECEIVED − PAID (cash in hand)</td><td class="n" colspan="3">${got-paid<0?'− ':''}${money(Math.abs(got-paid))}</td></tr>
       </tfoot>
     </table>
-    <div class="foot">Generated ${esc(today())} · PT Brother app</div>
+    <div class="foot">Generated ${esc(today())} · PT Brothers app</div>
   </body></html>`;
 }
 function rpPdf(){
@@ -2030,7 +2133,7 @@ function rpExport(){
   if(!rows.length){ toast('Nothing to export'); return; }
   const v = $('rpVehicle').value || 'all-vehicles';
   const period = [$('rpFrom').value||'start', $('rpTo').value||today()].join('_to_');
-  csvDownload(rows, `ptbrother-report-${v.replace(/\s+/g,'')}-${period}.csv`);
+  csvDownload(rows, `ptbrothers-report-${v.replace(/\s+/g,'')}-${period}.csv`);
   toast('Report downloaded');
 }
 function csvDownload(list, name){
@@ -2039,7 +2142,7 @@ function csvDownload(list, name){
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(name, [head.join(','),...rows].join('\n'), 'text/csv');
 }
-function exportCSV(){ csvDownload(db.entries, `ptbrother-entries-${today()}.csv`); toast('CSV downloaded'); }
+function exportCSV(){ csvDownload(db.entries, `ptbrothers-entries-${today()}.csv`); toast('CSV downloaded'); }
 function importJSON(input){
   const f = input.files[0]; if(!f) return;
   const r = new FileReader();
