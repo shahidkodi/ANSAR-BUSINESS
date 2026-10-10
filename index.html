@@ -1648,7 +1648,8 @@ function rHtml(p, rows){
     : `<tr class="first"><td colspan="${cols.length-1}">TOTAL EXPENSE</td><td class="n r">${money(t.exp)}</td></tr>
        <tr><td colspan="${cols.length-1}">Paid</td><td class="n">${money(t.paid)}</td></tr>
        <tr class="grand"><td colspan="${cols.length-1}">TO PAY</td><td class="n">${money(t.pay)}</td></tr>`;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${cfg.title}</title><style>
+  const fname = `${cfg.title} - ${scope} - ${from==='—'?'all':from} to ${to}`.replace(/[\\/:*?"<>|]/g,'-');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fname)}</title><style>
     @page{size:A4 landscape;margin:10mm}
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:11px}
     h1{font-size:17px;letter-spacing:.06em;margin:0 0 2px}
@@ -2005,10 +2006,11 @@ function blHtml(rows){
     body += `<tr class="vnet"><td colspan="5">Net — ${esc(name)}${g.paid?` <span class="q">(₹${g.paid.toLocaleString('en-IN')} already paid, not deducted)</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
   };
   Object.keys(byVeh).sort().forEach(v => block(v, byVeh[v]));
-  if(other.length) block('Other (not vehicle-wise)', other);
+  if(other.length) block(`Expense made by ${agent}`, other);
 
   const grand = T.i - T.o, due = grand - T.got;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bill — ${esc(agent)}</title><style>
+  const fname = `${agent} - bill - ${from==='—'?'all':from} to ${to}`.replace(/[\\/:*?"<>|]/g,'-');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fname)}</title><style>
     @page{size:A4;margin:14mm}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1e241d;margin:0;font-size:11.5px;line-height:1.45}
@@ -2103,7 +2105,8 @@ function rpHtml(rows){
       <td class="n ${e.balance>0?'r b':''}">${e.balance>0?money(e.balance):'—'}</td>
     </tr>`;
   }).join('');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>PT Brothers report</title><style>
+  const fname = `${v} - vehicle report - ${from==='—'?'all':from} to ${to}`.replace(/[\\/:*?"<>|]/g,'-');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fname)}</title><style>
     @page{size:A4;margin:12mm}
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1b2420;margin:0;font-size:12px}
