@@ -508,15 +508,18 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <div class="field"><label for="fTime">Time</label><input type="time" id="fTime"></div>
     </div>
 
-    <div class="grid2" id="rowAgentAddr">
+    <div id="rowAgentAddr">
       <div class="field"><label for="fAgent" id="lblAgent">Agent</label><select id="fAgent"></select></div>
-      <div class="field" id="fldAddress"><label for="fAddress">Address / Place</label><input id="fAddress"></div>
     </div>
 
     <div class="field" id="rowVehicle"><label for="fVehicle">Vehicle</label><select id="fVehicle"></select></div>
 
     <div class="field" id="rowExpCat" style="display:none"><label for="fExpCat">Expense type</label><select id="fExpCat"></select></div>
     <div class="field" id="rowEmployee" style="display:none"><label for="fEmployee" id="lblEmployee">Employee / Vehicle</label><select id="fEmployee"></select></div>
+
+    <div class="field" id="rowBroker"><label for="fBroker">Broker</label><select id="fBroker"></select></div>
+
+    <div class="field" id="fldAddress"><label for="fAddress">Address / Place</label><input id="fAddress"></div>
 
     <div class="grid2" id="rowQuality">
       <div class="field"><label for="fQuality">Material</label><select id="fQuality"></select></div>
@@ -826,6 +829,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
       <li onclick="showPage('m-vehicles')"><span class="lic"><svg class="ic"><use href="#i-lorry"/></svg></span><span class="nm">Vehicles</span><span class="cnt" id="cVehicles"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-employees')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Employees</span><span class="cnt" id="cEmployees"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-agents')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Agents</span><span class="cnt" id="cAgents"></span><span class="chev">›</span></li>
+      <li onclick="showPage('m-brokers')"><span class="lic"><svg class="ic"><use href="#i-person"/></svg></span><span class="nm">Brokers</span><span class="cnt" id="cBrokers"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-machines')"><span class="lic"><svg class="ic"><use href="#i-exc"/></svg></span><span class="nm">Machines / assets</span><span class="cnt" id="cMach"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-quality')"><span class="lic"><svg class="ic"><use href="#i-land"/></svg></span><span class="nm">Materials</span><span class="cnt" id="cQual"></span><span class="chev">›</span></li>
       <li onclick="showPage('m-cats')"><span class="lic"><svg class="ic"><use href="#i-cash"/></svg></span><span class="nm">Expense categories</span><span class="cnt" id="cCats"></span><span class="chev">›</span></li>
@@ -892,6 +896,15 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 </div>
 
+<div class="page" id="page-m-brokers">
+  <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Brokers <svg class="ic"><use href="#i-person"/></svg></span></div>
+  <div class="card">
+    <ul class="mlist" id="mBrokers"></ul>
+    <div class="addrow"><input id="addBroker" placeholder="Broker name"><button class="btn" onclick="addMaster('brokers','addBroker')">Add</button></div>
+    <div class="delall"><button class="btn" onclick="delAll('brokers','Brokers')">Delete all unused brokers</button></div>
+  </div>
+</div>
+
 <div class="page" id="page-m-machines">
   <div class="backbar"><button onclick="showPage('manage')">‹ Manage</button><span class="ttl">Machines / assets <svg class="ic"><use href="#i-exc"/></svg></span></div>
   <div class="card">
@@ -952,6 +965,7 @@ const seed = {
     {name:'RAMZI', contact:'', type:'OTHER'}
   ],
   agents: [{name:'SHAHIN', vehicles:[]}],
+  brokers: [],
   expenseCats: ['QUARRY CASH','VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
   machines: ['EXCAVATOR 1','BREAKER','JCB'],
   qualityTypes: ['FIRST QUALITY','SECOND QUALITY','THIRD QUALITY'],
@@ -963,6 +977,7 @@ try { db = JSON.parse(localStorage.getItem(KEY)) || structuredClone(seed); }
 catch(e){ db = structuredClone(seed); }
 if(!db.qualities) db.qualities = structuredClone(seed.qualities);
 if(!db.machines) db.machines = structuredClone(seed.machines);
+if(!db.brokers) db.brokers = [];
 db.agents = (db.agents||[]).map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
 if(!db.qualityTypes) db.qualityTypes = structuredClone(seed.qualityTypes);
 seed.expenseCats.forEach(c => { if(!db.expenseCats.includes(c)) db.expenseCats.push(c); });
@@ -1066,7 +1081,9 @@ function agentFleet(name){
   return db.vehicles.filter(v => !mapped.has(v));
 }
 function agentVehicles(){
-  const fl = agentFleet($('fAgent').value);
+  // Vehicle ledger: every vehicle is available whatever the agent.
+  // Quarry ledger: only the selected agent's lorries (or the unmapped ones when no agent).
+  const fl = formSection === 'VEH' ? db.vehicles : agentFleet($('fAgent').value);
   fillKeepValue($('fVehicle'), fl);
   if(!fl.length) $('fVehicle').innerHTML = '<option value="">— no vehicle for this agent —</option>';
   if(ctype === 'EXPENSE') expSubjects();
@@ -1095,7 +1112,7 @@ function expSubjects(){
   else if(formSection !== 'VEH' && g === 'VEH') g = 'BOTH';
   const emp = db.employees.map(e=>e.name);
   const all = formSection==='VEH' ? [...emp, ...db.vehicles, ...db.machines] : [...emp, ...db.machines];
-  const vehList = agentFleet($('fAgent').value);
+  const vehList = formSection === 'VEH' ? db.vehicles : agentFleet($('fAgent').value);
   const list = g==='MACH' ? db.machines : (g==='VEH' ? vehList : (g==='EMP' ? emp : all));
   $('lblEmployee').textContent = g==='MACH' ? 'Machine' : (g==='VEH' ? 'Vehicle' : (g==='EMP' ? 'Employee' : (formSection==='VEH' ? 'Employee / Vehicle / Machine' : 'Employee / Machine')));
   fillKeepValue($('fEmployee'), list);
@@ -1113,6 +1130,7 @@ function expSubjects(){
 function refreshFormSelects(){
   fillKeepValue($('fSite'), db.sites);
   fillKeepValue($('fAgent'), agentNames(), '— none —');
+  fillKeepValue($('fBroker'), db.brokers, '— none —');
   fillKeepValue($('fExpCat'), sectionCats());
   fillKeepValue($('fQuality'), db.qualities);
   fillKeepValue($('fQType'), db.qualityTypes);
@@ -1171,6 +1189,7 @@ $('btnSave').addEventListener('click', () => {
     subject,
     info: inc ? 'VEHICLE' : $('fExpCat').value,
     agent: $('fAgent').value,
+    broker: $('fBroker').value,
     address: inc ? $('fAddress').value.trim() : '',
     days: $('rowOT').style.display==='none' ? null : (+$('fDays').value||null),
     dayRate: $('rowOT').style.display==='none' ? null : (+$('fDayRate').value||null),
@@ -1210,6 +1229,7 @@ function mountForm(sec){
   $('btnSave').textContent = sec==='VEH' ? 'Save vehicle entry' : 'Save quarry entry';
 }
 function clearForm(){
+  $('fBroker').value='';
   ['fAddress','fRemarks','fQty','fRate','fCash','fAdvance','fNext','fDays','fDayRate','fOtHrs','fOtRate','fWkFrom','fWkTo'].forEach(id => $(id).value='');
   $('fOtAmt').textContent = fmt(0); $('fWageAmt').textContent = fmt(0);
   $('fDate').value = today();
@@ -1236,7 +1256,7 @@ function renderList(){
     (!type || e.ctype===type) &&
     (!st || e.status===st) &&
     (!from || e.date>=from) && (!to || e.date<=to) &&
-    (!q || [e.subject,e.agent,e.address,e.info,e.remarks].join(' ').toUpperCase().includes(q))
+    (!q || [e.subject,e.agent,e.broker,e.address,e.info,e.remarks].join(' ').toUpperCase().includes(q))
   ).sort((a,b) => ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')));
   if(!rows.length){
     $('entryList').innerHTML = `<div class="empty"><svg viewBox="0 0 24 24"><use href="#i-lorry"/></svg><br>No entries yet.<br>Add your first one from the New Entry tab.</div>`;
@@ -1255,7 +1275,7 @@ function entryCard(e){ return `
             <span class="amt">${e.ctype==='INCOME'?'+':'−'} ${fmt(e.amount)}</span>
           </div>
           <div class="meta">
-            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.remarks ? ' · '+esc(e.remarks) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.days ? ` · ${e.days} days × ${e.dayRate}` : ''}${e.otAmt ? ` · OT ${e.otHrs}h × ${e.otRate} = ${fmt(e.otAmt)}` : ''}${e.wkFrom ? ` · week ${esc(e.wkFrom)} to ${esc(e.wkTo)}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
+            ${esc(e.date)}${e.time ? ' ' + fmtTime(e.time) : ''} · ${esc(e.site)}${e.info && (e.ctype==='EXPENSE' || e.info!=='VEHICLE') ? ' · '+esc(e.info) : ''}${e.agent ? ' · Agent: '+esc(e.agent) : ''}${e.broker ? ' · Broker: '+esc(e.broker) : ''}${e.address ? ' · '+esc(e.address) : ''}${e.note ? ' · '+esc(e.note) : ''}${e.remarks ? ' · '+esc(e.remarks) : ''}${e.quality ? ' · '+esc(e.quality) : ''}${e.qtype ? ' ('+esc(e.qtype)+')' : ''}${e.qty ? ` · ${e.qty} × ${e.rate}` : ''}${e.days ? ` · ${e.days} days × ${e.dayRate}` : ''}${e.otAmt ? ` · OT ${e.otHrs}h × ${e.otRate} = ${fmt(e.otAmt)}` : ''}${e.wkFrom ? ` · week ${esc(e.wkFrom)} to ${esc(e.wkTo)}` : ''}${e.mode ? ' · '+esc(e.mode) : ''}
           </div>
           <div class="tags">
             <span class="tag ${e.status==='PENDING'?'pending':'closed'}">${e.status}</span>
@@ -1287,7 +1307,7 @@ function editEntry(id){
   setType(e.ctype);
   refreshFormSelects();
   $('fSite').value=e.site; $('fDate').value=e.date; $('fTime').value=e.time||'';
-  $('fAgent').value=e.agent||''; agentVehicles();
+  $('fAgent').value=e.agent||''; $('fBroker').value=e.broker||''; agentVehicles();
   if(e.ctype==='INCOME'){ $('fVehicle').value=e.subject; $('fAddress').value=e.address||''; }
   else {
     if(e.info && ![...$('fExpCat').options].some(o=>o.value===e.info)) $('fExpCat').insertAdjacentHTML('beforeend', `<option>${esc(e.info)}</option>`);
@@ -1437,8 +1457,8 @@ const RCFG = {
   rw: {title:'Salary report', group:'subject', mode:'sal'}
 };
 const RGROUPS = {
-  ri: [['subject','Vehicle'],['agent','Agent'],['quality','Material'],['qtype','Quality type'],['site','Site'],['date','Date']],
-  re: [['info','Category'],['subject','Employee / vehicle'],['agent','Agent'],['site','Site'],['date','Date']]
+  ri: [['subject','Vehicle'],['agent','Agent'],['broker','Broker'],['quality','Material'],['qtype','Quality type'],['site','Site'],['date','Date']],
+  re: [['info','Category'],['subject','Employee / vehicle'],['agent','Agent'],['broker','Broker'],['site','Site'],['date','Date']]
 };
 let rGroupBy = {ri:'subject', re:'info'};
 
@@ -1692,6 +1712,7 @@ function renderMenu(){
   $('cCats').textContent = db.expenseCats.length;
   $('cQual').textContent = db.qualities.length;
   $('cMach').textContent = db.machines.length;
+  $('cBrokers').textContent = db.brokers.length;
 }
 function renderManage(){
   const li = (ic, label, sub, onDel, list, raw) => {
@@ -1711,6 +1732,7 @@ function renderManage(){
   $('mAgents').innerHTML = db.agents.map((a,i)=>
     `<li><span class="lic" onclick="openAgent(${i})">${icon('i-person')}</span><span class="nm" onclick="openAgent(${i})">${esc(a.name)}${useCount('agents',a.name)?`<span class="use">${useCount('agents',a.name)} used</span>`:''}${(a.vehicles||[]).length?`<span class="use map">${a.vehicles.length} vehicle(s)</span>`:''}<div class="sub">${a.vehicles && a.vehicles.length ? esc(a.vehicles.join(', ')) : 'No vehicles assigned — tap to add'}</div></span><button onclick="delMaster('agents',${i})">Remove</button></li>`).join('');
   $('mCats').innerHTML = db.expenseCats.map((s,i)=>li({FUEL:'i-fuel',SALARY:'i-wallet','AD PAY':'i-cash'}[s]||'i-cash',esc(s),'',`delMaster('expenseCats',${i})`, 'expenseCats', s)).join('');
+  $('mBrokers').innerHTML = db.brokers.map((s,i)=>li('i-person',esc(s),'',`delMaster('brokers',${i})`, 'brokers', s)).join('');
   $('mMach').innerHTML = db.machines.map((s,i)=>li('i-exc',esc(s),'',`delMaster('machines',${i})`, 'machines', s)).join('');
   $('mQType').innerHTML = db.qualityTypes.map((s,i)=>li('i-chart',esc(s),'',`delMaster('qualityTypes',${i})`, 'qualityTypes', s)).join('');
   $('mQual').innerHTML = db.qualities.map((s,i)=>li('i-land',esc(s),'',`delMaster('qualities',${i})`, 'qualities', s)).join('');
@@ -1723,14 +1745,31 @@ function renderAgent(){
   $('agTitle').innerHTML = `${esc(a.name)} ${icon('i-person')}`;
   $('agVehicles').innerHTML = db.vehicles.map(v => {
     const on = (a.vehicles||[]).includes(v);
-    return `<li onclick="toggleAgentVeh('${esc(v)}')"><span class="lic" style="${on?'background:var(--income-bg);color:var(--income)':''}">${icon(on?'i-lorry':'i-lorry')}</span><span class="nm">${esc(v)}</span><button style="color:${on?'var(--income)':'var(--muted)'}">${on?'✓ Added':'Add'}</button></li>`;
+    const owner = ownerOf(v);
+    const taken = owner && owner !== a.name;
+    return `<li class="${taken?'lock':''}" onclick="toggleAgentVeh('${esc(v)}')">
+      <span class="lic" style="${on?'background:var(--income-bg);color:var(--income)':''}">${icon('i-lorry')}</span>
+      <span class="nm">${esc(v)}${taken?`<span class="use map">${esc(owner)}</span>`:''}</span>
+      <button style="color:${on?'var(--income)':(taken?'var(--muted)':'var(--muted)')}">${on?'✓ Added':(taken?'🔒 Taken':'Add')}</button></li>`;
   }).join('') || emptyMini('Add vehicles in Manage → Vehicles first');
+}
+function ownerOf(v){
+  const a = (db.agents||[]).find(x => (x.vehicles||[]).includes(v));
+  return a ? a.name : '';
 }
 function toggleAgentVeh(v){
   const a = db.agents[agIdx]; if(!a) return;
   a.vehicles = a.vehicles || [];
   const i = a.vehicles.indexOf(v);
-  if(i>-1) a.vehicles.splice(i,1); else a.vehicles.push(v);
+  if(i > -1){ a.vehicles.splice(i,1); }
+  else {
+    const owner = ownerOf(v);
+    if(owner && owner !== a.name){
+      alert(`"${v}" is already mapped to ${owner}.\n\nA vehicle can belong to only one agent. Unmap it from ${owner} first:\nManage → Agents → ${owner} → tap "${v}".`);
+      return;
+    }
+    a.vehicles.push(v);
+  }
   save(); renderAgent();
 }
 function addMaster(list, inputId){
@@ -1753,7 +1792,7 @@ function addEmployee(){
 }
 const MFIELD = {
   sites:'site', vehicles:'subject', employees:'subject', machines:'subject',
-  agents:'agent', expenseCats:'info', qualities:'quality', qualityTypes:'qtype'
+  agents:'agent', brokers:'broker', expenseCats:'info', qualities:'quality', qualityTypes:'qtype'
 };
 function mName(list, item){ return list==='employees' ? item.name : (list==='agents' ? item.name : item); }
 // how many saved entries use this master value
@@ -2158,8 +2197,8 @@ function rpExport(){
   toast('Report downloaded');
 }
 function csvDownload(list, name){
-  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','ADDRESS','MATERIAL','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
-  const rows = list.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
+  const head = ['SECTION','SITE','TYPE','DATE','TIME','EMPLOY/VEHICLE','INFO','AGENT','BROKER','ADDRESS','MATERIAL','QUALITY TYPE','WEEK FROM','WEEK TO','DAYS','DAY RATE','WAGE','OT HOURS','OT RATE','OT AMOUNT','QTY','RATE','AMOUNT','PAID','BALANCE','MODE','NEXT PAYMENT','STATUS','NOTE','REMARKS'];
+  const rows = list.map(e => [e.src==='VEH'?'VEHICLE':'QUARRY',e.site,e.ctype,e.date,e.time,e.subject,e.info,e.agent,e.broker,e.address,e.quality,e.qtype,e.wkFrom,e.wkTo,e.days,e.dayRate,e.basic,e.otHrs,e.otRate,e.otAmt,e.qty,e.rate,e.amount,e.advance,e.balance,e.mode,e.next,e.status,e.note,e.remarks]
     .map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(','));
   download(name, [head.join(','),...rows].join('\n'), 'text/csv');
 }
