@@ -962,11 +962,15 @@ header .date #verTag{display:block;font-size:9.5px;letter-spacing:.1em;color:#7F
   </div>
 </div>
 
+<button class="rembanner" id="updBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:18px;width:auto;z-index:45" onclick="applyUpdate()">
+  <svg class="ic"><use href="#i-save"/></svg><span>New version ready — tap to update</span><span class="chev">›</span>
+</button>
+
 <div class="toast" id="toast"></div>
 
 <script>
 /* ================= DATA ================= */
-const APP_VERSION = 'v39';
+const APP_VERSION = 'v40';
 const KEY = 'ansar_db_v1';
 const seed = {
   sites: ['KONDOTTY', 'PALLIKKAL'],
@@ -2352,7 +2356,34 @@ $('todayLabel').textContent = new Date().toLocaleDateString('en-IN',{day:'numeri
 $('verTag').textContent = APP_VERSION;
 refreshFormSelects();
 renderDash();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+/* ---------- updates ---------- */
+let waitingSW = null;
+function applyUpdate(){
+  if(waitingSW) waitingSW.postMessage('skipWaiting');
+  setTimeout(() => location.reload(), 300);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // a worker already waiting from a previous visit
+    if(reg.waiting){ waitingSW = reg.waiting; $('updBanner').style.display = 'flex'; }
+    reg.addEventListener('updatefound', () => {
+      const sw = reg.installing;
+      if(!sw) return;
+      sw.addEventListener('statechange', () => {
+        if(sw.state === 'installed' && navigator.serviceWorker.controller){
+          waitingSW = sw; $('updBanner').style.display = 'flex';
+        }
+      });
+    });
+    // check again whenever the app is reopened
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) reg.update(); });
+    setTimeout(() => reg.update(), 2000);
+  }).catch(()=>{});
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(reloaded) return; reloaded = true; location.reload();
+  });
+}
 </script>
 </body>
 </html>
