@@ -410,6 +410,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row net"><span class="lbl">Net</span><span class="val" id="dNet">₹0</span></div>
     <div class="row tap" onclick="showPage('d-collect')"><span class="lbl">To collect (pending) ›</span><span class="val sm" id="dReceivable">₹0</span></div>
     <div class="row tap" onclick="showPage('d-pay')"><span class="lbl">To pay (pending) ›</span><span class="val sm" id="dPayable">₹0</span></div>
+    <div class="row"><span class="lbl">Advance paid (not in expense)</span><span class="val sm" id="dAdvance">₹0</span></div>
 
     <!-- worksite scene: hill, excavator, tipper lorry -->
     <svg class="scene" viewBox="0 0 560 74" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
@@ -446,6 +447,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row net"><span class="lbl">Net</span><span class="val" id="vNet">₹0</span></div>
     <div class="row tap" onclick="showPage('d-collect')"><span class="lbl">To collect (pending) ›</span><span class="val sm" id="vRec">₹0</span></div>
     <div class="row tap" onclick="showPage('d-pay')"><span class="lbl">To pay (pending) ›</span><span class="val sm" id="vPay">₹0</span></div>
+    <div class="row"><span class="lbl">Advance paid (not in expense)</span><span class="val sm" id="vAdvance">₹0</span></div>
   </div>
 
   <button class="rembanner num" id="remBanner" style="display:none" onclick="showPage('d-reminders')">
@@ -625,6 +627,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row net"><span class="lbl">Net</span><span class="val" id="rsNet">₹0</span></div>
     <div class="row"><span class="lbl">To collect</span><span class="val sm" id="rsRec">₹0</span></div>
     <div class="row"><span class="lbl">To pay</span><span class="val sm" id="rsPay">₹0</span></div>
+    <div class="row"><span class="lbl">Advance paid (not in expense)</span><span class="val sm" id="rsAdv">₹0</span></div>
   </div>
 
 
@@ -691,6 +694,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="row"><span class="lbl">Total expense</span><span class="val" id="reOut">₹0</span></div>
     <div class="row"><span class="lbl">Paid</span><span class="val sm" id="rePaid">₹0</span></div>
     <div class="row net"><span class="lbl">To pay</span><span class="val" id="reDue">₹0</span></div>
+    <div class="row"><span class="lbl">Advance paid (not in expense)</span><span class="val sm" id="reAdv">₹0</span></div>
   </div>
 
 
@@ -966,7 +970,7 @@ const seed = {
   ],
   agents: [{name:'SHAHIN', vehicles:[]}],
   brokers: [],
-  expenseCats: ['QUARRY CASH','VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','OTHER'],
+  expenseCats: ['QUARRY CASH','VEHICLE','VEHICLE FUEL','VEHICLE REPAIR','MACHINE FUEL','MACHINE REPAIR','SALARY','ADVANCE SALARY','ADVANCE PAY','OTHER'],
   machines: ['EXCAVATOR 1','BREAKER','JCB'],
   qualityTypes: ['FIRST QUALITY','SECOND QUALITY','THIRD QUALITY'],
   qualities: ['M SAND','P SAND','METAL 12MM','METAL 20MM','DUST','ROCK','SOIL'],
@@ -975,12 +979,18 @@ const seed = {
 let db;
 try { db = JSON.parse(localStorage.getItem(KEY)) || structuredClone(seed); }
 catch(e){ db = structuredClone(seed); }
-if(!db.qualities) db.qualities = structuredClone(seed.qualities);
-if(!db.machines) db.machines = structuredClone(seed.machines);
-if(!db.brokers) db.brokers = [];
-db.agents = (db.agents||[]).map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
-if(!db.qualityTypes) db.qualityTypes = structuredClone(seed.qualityTypes);
-seed.expenseCats.forEach(c => { if(!db.expenseCats.includes(c)) db.expenseCats.push(c); });
+// Brings any older database (or restored backup) up to the current shape.
+function migrate(x){
+  x = x || {};
+  ['sites','vehicles','employees','agents','expenseCats','entries','qualities','machines','qualityTypes','brokers'].forEach(k => {
+    if(!Array.isArray(x[k])) x[k] = Array.isArray(seed[k]) ? structuredClone(seed[k]) : [];
+  });
+  x.agents = x.agents.map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
+  x.employees = x.employees.map(e => typeof e === 'string' ? {name:e, contact:'', type:'OTHER'} : e);
+  seed.expenseCats.forEach(c => { if(!x.expenseCats.includes(c)) x.expenseCats.push(c); });
+  return x;
+}
+db = migrate(db);
 function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
 
 let editId = null;
@@ -1348,11 +1358,12 @@ function renderDash(){
   const site=$('dashSite').value, mon=$('dashMonth').value;
   const from=$('dFrom').value, to=$('dTo').value;
   const rows = db.entries.filter(e => (!site||e.site===site) && (!mon||(e.date||'').startsWith(mon)) && (!from||e.date>=from) && (!to||e.date<=to));
-  const L = () => ({i:0, o:0, r:0, p:0});
+  const L = () => ({i:0, o:0, r:0, p:0, adv:0});
   const q = L(), v = L();
   rows.forEach(e => {
     const t = e.src==='VEH' ? v : q;
     if(e.ctype==='INCOME'){ t.i += e.amount; if(e.status==='PENDING') t.r += e.balance; }
+    else if(isAdvancePay(e)) t.adv += e.amount;              // advance, not an expense
     else { t.o += e.amount; if(e.status==='PENDING') t.p += e.balance; }
   });
   // Quarry ledger
@@ -1361,12 +1372,14 @@ function renderDash(){
   $('dNet').textContent = sfmt(q.i - q.o);
   $('dReceivable').textContent = fmt(q.r);
   $('dPayable').textContent = fmt(q.p);
+  $('dAdvance').textContent = fmt(q.adv);
   // Vehicle ledger
   $('vIn').textContent = fmt(v.i);
   $('vOut').textContent = fmt(v.o);
   $('vNet').textContent = sfmt(v.i - v.o);
   $('vRec').textContent = fmt(v.r);
   $('vPay').textContent = fmt(v.p);
+  $('vAdvance').textContent = fmt(v.adv);
 
   // --- reminder banner (all entries, not affected by filters) ---
   const nowD = today();
@@ -1462,6 +1475,8 @@ const RGROUPS = {
 };
 let rGroupBy = {ri:'subject', re:'info'};
 
+// Advance pay is money handed over in advance, not a cost — kept out of expense totals.
+function isAdvancePay(e){ return e.ctype==='EXPENSE' && /ADVANCE/.test((e.info||'').toUpperCase()); }
 function isSalary(e){ return e.ctype==='EXPENSE' && expGroup(e.info)==='EMP'; }
 function isAdvance(e){ return isSalary(e) && /ADVANCE|AD PAY/.test((e.info||'').toUpperCase()); }
 function rFill(p){
@@ -1496,11 +1511,13 @@ function rRows(p){
   }).sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
 }
 function rTotals(p, rows){
-  const t = {inc:0, exp:0, got:0, paid:0, rec:0, pay:0, wage:0, ot:0, adv:0};
+  const t = {inc:0, exp:0, advPay:0, got:0, paid:0, rec:0, pay:0, wage:0, ot:0, adv:0};
   rows.forEach(e => {
     if(e.ctype==='INCOME'){
       t.inc += e.amount||0; t.got += e.advance||0;
       if(e.status==='PENDING') t.rec += e.balance||0;
+    } else if(isAdvancePay(e) && p!=='rw'){
+      t.advPay += e.amount||0;                               // advance, not an expense
     } else {
       t.exp += e.amount||0; t.paid += e.advance||0;
       if(e.status==='PENDING') t.pay += e.balance||0;
@@ -1544,10 +1561,10 @@ function renderReportPage(p){
   const S = (id, v) => { const el = $(id); if(el) el.textContent = v; };
   if(p==='rs'){
     S('rsIn', fmt(t.inc)); S('rsOut', fmt(t.exp)); S('rsNet', sfmt(t.net));
-    S('rsRec', fmt(t.rec)); S('rsPay', fmt(t.pay));
+    S('rsRec', fmt(t.rec)); S('rsPay', fmt(t.pay)); S('rsAdv', fmt(t.advPay));
   }
   if(p==='ri'){ S('riIn', fmt(t.inc)); S('riGot', fmt(t.got)); S('riDue', fmt(t.rec)); }
-  if(p==='re'){ S('reOut', fmt(t.exp)); S('rePaid', fmt(t.paid)); S('reDue', fmt(t.pay)); }
+  if(p==='re'){ S('reOut', fmt(t.exp)); S('rePaid', fmt(t.paid)); S('reDue', fmt(t.pay)); S('reAdv', fmt(t.advPay)); }
   if(p==='rw'){
     S('rwWage', fmt(t.wage)); S('rwOt', fmt(t.ot)); S('rwAdv', '− ' + fmt(t.adv));
     S('rwPaid', fmt(t.wpaid)); S('rwDue', sfmt(t.due));
@@ -1931,6 +1948,7 @@ function renderReport(){
     const t = e.src==='VEH' ? v : q;
     const pv = per[e.subject] || (per[e.subject] = {qi:0,qo:0,vi:0,vo:0});
     if(e.ctype==='INCOME'){ t.i+=e.amount; t.got+=e.advance||0; if(e.src==='VEH') pv.vi+=e.amount; else pv.qi+=e.amount; }
+    else if(isAdvancePay(e)){ t.paid+=e.advance||0; return; }   // advance, not an expense
     else { t.o+=e.amount; t.paid+=e.advance||0; if(e.src==='VEH') pv.vo+=e.amount; else pv.qo+=e.amount; }
     if(e.status==='PENDING') t.p += e.balance;
   });
@@ -1964,13 +1982,14 @@ function blRows(){
     .sort((a,b) => ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));
 }
 function blTotals(rows){
-  let inc=0, exp=0, expPaid=0, got=0;
+  let inc=0, exp=0, expPaid=0, advPay=0, got=0;
   rows.forEach(e => {
     if(e.ctype==='INCOME'){ inc += e.amount||0; got += e.advance||0; }
+    else if(isAdvancePay(e)) advPay += e.amount||0;        // advance, not an expense
     else if(e.status==='CLOSED') expPaid += e.amount||0;   // already settled - not deducted
     else exp += e.amount||0;                               // still owed to the agent
   });
-  return {inc, exp, expPaid, net: inc-exp, got, due: (inc-exp)-got};
+  return {inc, exp, expPaid, advPay, net: inc-exp, got, due: (inc-exp)-got};
 }
 function renderBill(){
   const rows = blRows(), t = blTotals(rows);
@@ -2015,34 +2034,42 @@ function blHtml(rows){
     else other.push(e);
   });
   const sum = list => {
-    let i=0,o=0,paid=0,got=0;
+    let i=0,o=0,paid=0,adv=0,got=0;
     list.forEach(e => {
       if(e.ctype==='INCOME'){ i+=e.amount||0; got+=e.advance||0; }
+      else if(isAdvancePay(e)) adv+=e.amount||0;
       else if(e.status==='CLOSED') paid+=e.amount||0;
       else o+=e.amount||0;
     });
-    return {i,o,paid,net:i-o,got};
+    return {i,o,paid,adv,net:i-o,got};
   };
   const paidTag = '<span class="pd">paid</span>';
+  const advTag  = '<span class="ad">advance</span>';
   const line = e => {
-    const closedExp = e.ctype==='EXPENSE' && e.status==='CLOSED';
-    return `<tr class="${closedExp?'done':''}">
+    const adv = isAdvancePay(e);
+    const closedExp = e.ctype==='EXPENSE' && !adv && e.status==='CLOSED';
+    const who = [e.broker ? 'Broker: '+e.broker : '', e.address || ''].filter(Boolean).join(' · ');
+    return `<tr class="${closedExp||adv?'done':''}">
       <td>${esc(e.date)}</td>
-      <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}${closedExp?paidTag:''}</td>
+      <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}${closedExp?paidTag:''}${adv?advTag:''}</td>
+      <td class="bk">${esc(who)}</td>
       <td class="n">${e.qty!=null?e.qty:''}</td>
       <td class="n">${e.rate!=null?e.rate:''}</td>
       <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td>
-      <td class="n ${closedExp?'pdv':'r'}">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
+      <td class="n ${closedExp||adv?'pdv':'r'}">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
     </tr>`;
   };
 
-  let body = '', T = {i:0,o:0,paid:0,got:0};
+  let body = '', T = {i:0,o:0,paid:0,adv:0,got:0};
   const block = (name, list) => {
     const g = sum(list);
-    T.i += g.i; T.o += g.o; T.paid += g.paid; T.got += g.got;
-    body += `<tr class="veh"><td colspan="4">${esc(name)}</td><td class="n">${g.i?money(g.i):''}</td><td class="n r">${g.o?money(g.o):''}</td></tr>`;
+    T.i += g.i; T.o += g.o; T.paid += g.paid; T.adv += g.adv; T.got += g.got;
+    body += `<tr class="veh"><td colspan="5">${esc(name)}</td><td class="n">${g.i?money(g.i):''}</td><td class="n r">${g.o?money(g.o):''}</td></tr>`;
     body += list.map(line).join('');
-    body += `<tr class="vnet"><td colspan="5">Net — ${esc(name)}${g.paid?` <span class="q">(₹${g.paid.toLocaleString('en-IN')} already paid, not deducted)</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
+    const notes = [];
+    if(g.paid) notes.push(`₹${g.paid.toLocaleString('en-IN')} already paid`);
+    if(g.adv)  notes.push(`₹${g.adv.toLocaleString('en-IN')} advance`);
+    body += `<tr class="vnet"><td colspan="6">Net — ${esc(name)}${notes.length?` <span class="q">(${notes.join(', ')}, not deducted)</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
   };
   Object.keys(byVeh).sort().forEach(v => block(v, byVeh[v]));
   if(other.length) block(`Expense made by ${agent}`, other);
@@ -2064,6 +2091,10 @@ function blHtml(rows){
     th{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#6e7568;text-align:left;padding:0 8px 6px;border-bottom:1px solid #cfc7b2}
     td{padding:5px 8px;border-bottom:1px solid #f0ece1}
     .q{color:#8a9185;font-size:9.5px}
+    td.bk{color:#6e7568;font-size:10.5px}
+    .subline{margin:-9px 0 14px;font-size:11px;color:#4a5147}
+    .lbl2{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#8a9185;margin-right:3px}
+    .ad{display:inline-block;margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#7a6208;background:#fbf2d2;border:1px solid #ebd58f;border-radius:99px;padding:1px 6px;vertical-align:1px}
     .pd{display:inline-block;margin-left:6px;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#1e7a46;background:#e4f2e8;border:1px solid #bfe0cb;border-radius:99px;padding:1px 6px;vertical-align:1px}
     tr.done td{color:#8a9185}
     .pdv{color:#8a9185}
@@ -2088,14 +2119,23 @@ function blHtml(rows){
     </div>
     <div class="to">Bill to</div>
     <div class="who">${esc(agent)}</div>
+    ${(() => {
+      const bl = [...new Set(rows.map(e => e.broker).filter(Boolean))];
+      const pl = [...new Set(rows.map(e => e.address).filter(Boolean))];
+      const bits = [];
+      if(bl.length) bits.push(`<span class="lbl2">Broker</span> ${esc(bl.join(', '))}`);
+      if(pl.length) bits.push(`<span class="lbl2">Place</span> ${esc(pl.join(', '))}`);
+      return bits.length ? `<div class="subline">${bits.join(' &nbsp;·&nbsp; ')}</div>` : '';
+    })()}
     <table>
-      <thead><tr><th style="width:15%">Date</th><th>Material / item</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Income</th><th class="n">Expense</th></tr></thead>
+      <thead><tr><th style="width:13%">Date</th><th>Material / item</th><th>Broker / place</th><th class="n">Qty</th><th class="n">Rate</th><th class="n">Income</th><th class="n">Expense</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
     <div class="sumwrap"><div class="sum">
       <div><span>Total income</span><span>${money(T.i)}</span></div>
       <div><span>Less: expenses owed to agent</span><span class="r">− ${money(T.o)}</span></div>
       ${T.paid ? `<div class="muted"><span>Expenses already paid (not deducted)</span><span>${money(T.paid)}</span></div>` : ''}
+      ${T.adv ? `<div class="muted"><span>Advance pay (not deducted)</span><span>${money(T.adv)}</span></div>` : ''}
       <div class="net"><span>NET PAYABLE</span><span>${sg(grand)}</span></div>
       <div class="sep"><span>Already received</span><span>${money(T.got)}</span></div>
       <div class="due"><span>BALANCE DUE</span><span>${sg(due)}</span></div>
@@ -2211,9 +2251,9 @@ function importJSON(input){
       const data = JSON.parse(r.result);
       if(!data.entries || !data.sites) throw new Error('bad file');
       if(!confirm(`Restore backup with ${data.entries.length} entries? This replaces current data.`)) return;
-      db = data; save();
-      renderDash(); renderManage(); renderMenu(); renderList();
-      toast('Backup restored');
+      db = migrate(data); save();
+      refreshFormSelects(); renderDash(); renderManage(); renderMenu(); renderList();
+      toast(`Backup restored — ${db.entries.length} entries`);
     } catch(e){ toast('Not a valid backup file'); }
     input.value='';
   };
