@@ -204,6 +204,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 }
 .drawer .dhead .mark{width:36px; height:36px; background:rgba(255,255,255,.12); border-radius:10px; display:grid; place-items:center; color:var(--amber)}
 .drawer .dhead .t{font-size:15px; font-weight:800; letter-spacing:.04em}
+header .date #verTag{display:block;font-size:9.5px;letter-spacing:.1em;color:#7FB3A5;margin-top:1px}
 .drawer .dhead .s{font-size:10px; color:#A9CFC5; text-transform:uppercase; letter-spacing:.14em}
 .drawer .item{
   display:flex; align-items:center; gap:13px; width:100%; padding:14px 18px;
@@ -381,7 +382,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="sub">Transport &amp; Earth Work Ledger</div>
     <h1>PT BROTHERS</h1>
   </div>
-  <div class="date num" id="todayLabel"></div>
+  <div class="date num"><span id="todayLabel"></span><span id="verTag"></span></div>
 </header>
 <nav>
   <button class="on" data-page="dash" aria-label="Dashboard"><svg><use href="#i-chart"/></svg>Dashboard</button>
@@ -965,6 +966,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 
 <script>
 /* ================= DATA ================= */
+const APP_VERSION = 'v39';
 const KEY = 'ansar_db_v1';
 const seed = {
   sites: ['KONDOTTY', 'PALLIKKAL'],
@@ -995,6 +997,18 @@ function migrate(x){
   x.agents = x.agents.map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
   x.employees = x.employees.map(e => typeof e === 'string' ? {name:e, contact:'', type:'OTHER'} : e);
   seed.expenseCats.forEach(c => { if(!x.expenseCats.includes(c)) x.expenseCats.push(c); });
+  // Recover master lists from the entries, so a restored backup never loses a
+  // name that its own entries still refer to.
+  const add = (list, v) => { if(v && !list.includes(v)) list.push(v); };
+  x.entries.forEach(e => {
+    add(x.sites, e.site);
+    add(x.brokers, e.broker);
+    add(x.qualities, e.quality);
+    add(x.qualityTypes, e.qtype);
+    if(e.agent && !x.agents.some(a => a.name === e.agent)) x.agents.push({name:e.agent, vehicles:[]});
+    if(e.ctype === 'INCOME') add(x.vehicles, e.subject);
+    if(e.info && e.info !== 'VEHICLE') add(x.expenseCats, e.info);
+  });
   return x;
 }
 db = migrate(db);
@@ -2321,6 +2335,12 @@ function importJSON(input){
       db = migrate(data); save();
       refreshFormSelects(); renderDash(); renderManage(); renderMenu(); renderList();
       toast(`Backup restored — ${db.entries.length} entries`);
+      alert(`Backup restored.\n\n` +
+            `Entries: ${db.entries.length}\n` +
+            `Sites: ${db.sites.length}   Vehicles: ${db.vehicles.length}\n` +
+            `Agents: ${db.agents.length}   Brokers: ${db.brokers.length}\n` +
+            `Employees: ${db.employees.length}   Machines: ${db.machines.length}\n\n` +
+            (db.brokers.length ? '' : 'This backup had no broker names saved. Add them under Manage → Brokers.'));
     } catch(e){ toast('Not a valid backup file'); }
     input.value='';
   };
@@ -2329,6 +2349,7 @@ function importJSON(input){
 
 /* ================= INIT ================= */
 $('todayLabel').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+$('verTag').textContent = APP_VERSION;
 refreshFormSelects();
 renderDash();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
