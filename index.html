@@ -948,6 +948,13 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 
   <div class="card">
+    <h2><svg class="ic"><use href="#i-save"/></svg>Phone storage</h2>
+    <div id="stoBox"></div>
+    <div class="btnrow"><button class="btn ghost" onclick="askPersist()">Protect this data</button></div>
+    <p class="hint" id="stoHint"></p>
+  </div>
+
+  <div class="card">
     <h2><svg class="ic"><use href="#i-gear"/></svg>Delete password</h2>
     <p class="hint" style="margin-top:0">Deleting a site also deletes every entry saved under it, so it asks for this password. The starting password is <b>1234</b>.</p>
     <div class="btnrow"><button class="btn ghost" onclick="changePin()">Change delete password</button></div>
@@ -991,7 +998,12 @@ function migrate(x){
   return x;
 }
 db = migrate(db);
-function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(err){
+    alert('Could not save to this phone\'s storage.\n\nIt may be full, or Chrome may be blocking storage for this site. Take a backup now (Manage → Backup & export) before adding more entries.');
+  }
+}
 
 let editId = null;
 
@@ -1045,6 +1057,7 @@ function showPage(p){
   if(p==='list') renderList();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
+  if(p==='m-backup') renderStorage();
   if(p==='m-agent') renderAgent();
   if(p.startsWith('d-')) renderDashSub(p);
   if(p==='entry') refreshFormSelects();
@@ -1909,6 +1922,60 @@ function changePin(){
   if(!next.trim()){ toast('Password cannot be blank'); return; }
   db.pin = next.trim(); save(); toast('Delete password changed');
 }
+
+/* ================= PHONE STORAGE ================= */
+// Everything lives in this phone's own storage. Ask the browser to mark it
+// persistent so it is not cleared when the phone runs low on space.
+async function storageInfo(){
+  const o = {persisted:null, used:0, quota:0, entries:(db.entries||[]).length, bytes:0};
+  try { o.bytes = new Blob([localStorage.getItem(KEY)||'']).size; } catch(e){}
+  try {
+    if(navigator.storage && navigator.storage.persisted) o.persisted = await navigator.storage.persisted();
+    if(navigator.storage && navigator.storage.estimate){
+      const est = await navigator.storage.estimate();
+      o.used = est.usage||0; o.quota = est.quota||0;
+    }
+  } catch(e){}
+  return o;
+}
+function kb(n){
+  if(n < 1024) return n + ' B';
+  if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+}
+async function renderStorage(){
+  if(!$('stoBox')) return;
+  const s = await storageInfo();
+  const state = s.persisted === true
+    ? `<span class="use" style="background:var(--income-bg);border-color:#BFE0CB;color:var(--income)">Protected</span>`
+    : (s.persisted === false ? `<span class="use">Not protected</span>` : '');
+  const rows = [
+    ['Saved on this phone', `${s.entries} entr${s.entries===1?'y':'ies'} · ${kb(s.bytes)}`],
+    ['Storage state', state || 'Unknown on this browser'],
+  ];
+  if(s.quota) rows.push(['Space available', `${kb(s.quota - s.used)} free of ${kb(s.quota)}`]);
+  $('stoBox').innerHTML = rows.map(([k,v]) =>
+    `<div class="bar"><span class="name">${k}</span><span class="amt">${v}</span></div>`).join('');
+  $('stoHint').innerHTML = s.persisted === true
+    ? 'Android will not clear this data to free up space. It is still removed if you clear Chrome’s site data or uninstall the app, so keep taking backups.'
+    : 'Tap “Protect this data” so Android never clears it to free up space. Keep taking backups either way — clearing Chrome’s site data still erases everything.';
+}
+async function askPersist(){
+  if(!(navigator.storage && navigator.storage.persist)){
+    toast('This browser cannot protect storage'); return;
+  }
+  const ok = await navigator.storage.persist();
+  toast(ok ? 'Storage protected on this phone' : 'Android did not grant protection — try again after using the app a few times');
+  renderStorage();
+}
+// ask quietly on first load
+(async () => {
+  try {
+    if(navigator.storage && navigator.storage.persist && navigator.storage.persisted){
+      if(!(await navigator.storage.persisted())) await navigator.storage.persist();
+    }
+  } catch(e){}
+})();
 
 /* ================= BACKUP ================= */
 function download(name, text, type){
