@@ -204,6 +204,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
 }
 .drawer .dhead .mark{width:36px; height:36px; background:rgba(255,255,255,.12); border-radius:10px; display:grid; place-items:center; color:var(--amber)}
 .drawer .dhead .t{font-size:15px; font-weight:800; letter-spacing:.04em}
+header .date #verTag{display:block;font-size:9.5px;letter-spacing:.1em;color:#7FB3A5;margin-top:1px}
 .drawer .dhead .s{font-size:10px; color:#A9CFC5; text-transform:uppercase; letter-spacing:.14em}
 .drawer .item{
   display:flex; align-items:center; gap:13px; width:100%; padding:14px 18px;
@@ -381,7 +382,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="sub">Transport &amp; Earth Work Ledger</div>
     <h1>PT BROTHERS</h1>
   </div>
-  <div class="date num" id="todayLabel"></div>
+  <div class="date num"><span id="todayLabel"></span><span id="verTag"></span></div>
 </header>
 <nav>
   <button class="on" data-page="dash" aria-label="Dashboard"><svg><use href="#i-chart"/></svg>Dashboard</button>
@@ -534,10 +535,11 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     </div>
 
     <div id="rowOT" style="display:none">
-      <div class="grid2">
+      <div class="grid2" id="rowWeek">
         <div class="field"><label for="fWkFrom">Week from</label><input type="date" id="fWkFrom"></div>
         <div class="field"><label for="fWkTo">Week to</label><input type="date" id="fWkTo"></div>
       </div>
+      <div id="rowWage">
       <div class="grid2">
         <div class="field"><label for="fDays">Days worked</label><input type="number" id="fDays" inputmode="decimal" step="0.5"></div>
         <div class="field"><label for="fDayRate">Daily wage ₹</label><input type="number" id="fDayRate" inputmode="decimal"></div>
@@ -548,21 +550,22 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
         <div class="field"><label for="fOtRate">OT rate / hour ₹</label><input type="number" id="fOtRate" inputmode="decimal"></div>
       </div>
       <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Overtime amount</span><span class="val" id="fOtAmt">₹0</span></div>
+      </div>
     </div>
 
     <div class="autoamt num" id="rowAuto"><span class="lbl"><svg class="ic"><use href="#i-chart"/></svg>Auto amount (Qty × Rate)</span><span class="val" id="fAutoAmt">₹0</span></div>
 
-    <div class="grid2">
+    <div class="grid2" id="rowCashMode">
       <div class="field"><label for="fCash" id="lblCash">Total amount ₹</label><input type="number" id="fCash" inputmode="decimal"></div>
-      <div class="field"><label for="fMode">Mode</label><select id="fMode"><option value=""></option><option>GPAY</option><option>BY HAND</option><option>BANK</option></select></div>
+      <div class="field" id="fldMode"><label for="fMode">Mode</label><select id="fMode"><option value=""></option><option>GPAY</option><option>BY HAND</option><option>BANK</option></select></div>
     </div>
 
-    <div class="grid2">
+    <div class="grid2" id="rowAdvNext">
       <div class="field"><label for="fAdvance" id="lblAdv">Received now ₹</label><input type="number" id="fAdvance" inputmode="decimal"></div>
       <div class="field"><label for="fNext">Next payment date</label><input type="date" id="fNext"></div>
     </div>
 
-    <div class="autoamt num"><span class="lbl"><svg class="ic"><use href="#i-cash"/></svg>Balance</span><span class="val" id="fBalance">₹0</span></div>
+    <div class="autoamt num" id="rowBalance"><span class="lbl"><svg class="ic"><use href="#i-cash"/></svg>Balance</span><span class="val" id="fBalance">₹0</span></div>
 
     <div class="field"><label for="fRemarks">Remarks</label><input id="fRemarks"></div>
 
@@ -757,6 +760,7 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
     <div class="lhead"><svg class="ic"><use href="#i-person"/></svg>Bill summary</div>
     <div class="row"><span class="lbl">Income (material supplied)</span><span class="val" id="blIn">₹0</span></div>
     <div class="row"><span class="lbl">Less: expenses owed to agent</span><span class="val" id="blOut">₹0</span></div>
+    <div class="row"><span class="lbl">Less: advance paid by agent</span><span class="val" id="blAdv">₹0</span></div>
     <div class="row"><span class="lbl">Already paid (not deducted)</span><span class="val sm" id="blPaidExp">₹0</span></div>
     <div class="row net"><span class="lbl">Net payable</span><span class="val" id="blNet">₹0</span></div>
     <div class="row"><span class="lbl">Already received</span><span class="val sm" id="blGot">₹0</span></div>
@@ -948,16 +952,28 @@ nav button.on{color:#fff; font-weight:800; border-bottom-color:var(--amber)}
   </div>
 
   <div class="card">
+    <h2><svg class="ic"><use href="#i-save"/></svg>Phone storage</h2>
+    <div id="stoBox"></div>
+    <div class="btnrow"><button class="btn ghost" onclick="askPersist()">Protect this data</button></div>
+    <p class="hint" id="stoHint"></p>
+  </div>
+
+  <div class="card">
     <h2><svg class="ic"><use href="#i-gear"/></svg>Delete password</h2>
     <p class="hint" style="margin-top:0">Deleting a site also deletes every entry saved under it, so it asks for this password. The starting password is <b>1234</b>.</p>
     <div class="btnrow"><button class="btn ghost" onclick="changePin()">Change delete password</button></div>
   </div>
 </div>
 
+<button class="rembanner" id="updBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:18px;width:auto;z-index:45" onclick="applyUpdate()">
+  <svg class="ic"><use href="#i-save"/></svg><span>New version ready — tap to update</span><span class="chev">›</span>
+</button>
+
 <div class="toast" id="toast"></div>
 
 <script>
 /* ================= DATA ================= */
+const APP_VERSION = 'v41';
 const KEY = 'ansar_db_v1';
 const seed = {
   sites: ['KONDOTTY', 'PALLIKKAL'],
@@ -988,10 +1004,27 @@ function migrate(x){
   x.agents = x.agents.map(a => typeof a === 'string' ? {name:a, vehicles:[]} : {name:a.name, vehicles:a.vehicles||[]});
   x.employees = x.employees.map(e => typeof e === 'string' ? {name:e, contact:'', type:'OTHER'} : e);
   seed.expenseCats.forEach(c => { if(!x.expenseCats.includes(c)) x.expenseCats.push(c); });
+  // Recover master lists from the entries, so a restored backup never loses a
+  // name that its own entries still refer to.
+  const add = (list, v) => { if(v && !list.includes(v)) list.push(v); };
+  x.entries.forEach(e => {
+    add(x.sites, e.site);
+    add(x.brokers, e.broker);
+    add(x.qualities, e.quality);
+    add(x.qualityTypes, e.qtype);
+    if(e.agent && !x.agents.some(a => a.name === e.agent)) x.agents.push({name:e.agent, vehicles:[]});
+    if(e.ctype === 'INCOME') add(x.vehicles, e.subject);
+    if(e.info && e.info !== 'VEHICLE') add(x.expenseCats, e.info);
+  });
   return x;
 }
 db = migrate(db);
-function save(){ localStorage.setItem(KEY, JSON.stringify(db)); }
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(err){
+    alert('Could not save to this phone\'s storage.\n\nIt may be full, or Chrome may be blocking storage for this site. Take a backup now (Manage → Backup & export) before adding more entries.');
+  }
+}
 
 let editId = null;
 
@@ -1045,6 +1078,7 @@ function showPage(p){
   if(p==='list') renderList();
   if(p==='manage') renderMenu();
   if(p.startsWith('m-')) renderManage();
+  if(p==='m-backup') renderStorage();
   if(p==='m-agent') renderAgent();
   if(p.startsWith('d-')) renderDashSub(p);
   if(p==='entry') refreshFormSelects();
@@ -1069,6 +1103,10 @@ function setType(t){
   $('rowAuto').style.display = inc ? '' : 'none';
   $('rowQuality').style.display = inc ? '' : 'none';
   $('rowOT').style.display = 'none';
+  $('rowBroker').style.display = '';
+  $('fldMode').style.display = '';
+  $('rowAdvNext').style.display = '';
+  $('rowBalance').style.display = '';
   $('rowExpCat').style.display = inc?'none':'';
   $('rowEmployee').style.display = inc?'none':'';
   if(!inc) expSubjects();
@@ -1132,9 +1170,17 @@ function expSubjects(){
     $('rowQuality').style.display = material ? '' : 'none';
     $('rowQtyRate').style.display = material ? '' : 'none';
     $('rowAuto').style.display    = material ? '' : 'none';
-    $('rowOT').style.display      = g==='EMP' ? '' : 'none';
-    if(g==='EMP') weekDefaults();
-    $('lblCash').textContent = g==='EMP' ? 'Total pay ₹' : 'Expense amount ₹';
+    const advance = isAdvanceCat(cat);
+    // Advance salary / advance pay: just employee, week, amount and remarks.
+    $('rowOT').style.display   = (g==='EMP' || advance) ? '' : 'none';
+    $('rowWage').style.display = (g==='EMP' && !advance) ? '' : 'none';
+    $('rowWeek').style.display = (g==='EMP' || advance) ? '' : 'none';
+    $('rowBroker').style.display = advance ? 'none' : '';
+    $('fldMode').style.display   = advance ? 'none' : '';
+    $('rowAdvNext').style.display = advance ? 'none' : '';
+    $('rowBalance').style.display = advance ? 'none' : '';
+    if(g==='EMP' || advance) weekDefaults();
+    $('lblCash').textContent = advance ? 'Advance amount ₹' : (g==='EMP' ? 'Total pay ₹' : 'Expense amount ₹');
   }
 }
 function refreshFormSelects(){
@@ -1188,10 +1234,13 @@ function calc(){
 
 $('btnSave').addEventListener('click', () => {
   const inc = ctype==='INCOME';
-  const cash = +$('fCash').value||0, adv = +$('fAdvance').value||0;
+  const cash = +$('fCash').value||0;
+  let adv = +$('fAdvance').value||0;
   const subject = inc ? $('fVehicle').value : $('fEmployee').value;
   if(!subject){ toast(inc?'Select a vehicle':'Select employee / vehicle'); return; }
   if(!cash){ toast('Enter the amount'); return; }
+  const advEntry = ctype==='EXPENSE' && isAdvanceCat($('fExpCat').value);
+  if(advEntry) adv = cash;                 // an advance is paid in full when recorded
   const bal = cash - adv;
   const e = {
     id: editId || Date.now().toString(36),
@@ -1201,14 +1250,14 @@ $('btnSave').addEventListener('click', () => {
     agent: $('fAgent').value,
     broker: $('fBroker').value,
     address: inc ? $('fAddress').value.trim() : '',
-    days: $('rowOT').style.display==='none' ? null : (+$('fDays').value||null),
-    dayRate: $('rowOT').style.display==='none' ? null : (+$('fDayRate').value||null),
-    basic: $('rowOT').style.display==='none' ? null : ((+$('fDays').value||0)*(+$('fDayRate').value||0) || null),
+    days: ($('rowWage').style.display==='none') ? null : (+$('fDays').value||null),
+    dayRate: ($('rowWage').style.display==='none') ? null : (+$('fDayRate').value||null),
+    basic: ($('rowWage').style.display==='none') ? null : ((+$('fDays').value||0)*(+$('fDayRate').value||0) || null),
     wkFrom: $('rowOT').style.display==='none' ? '' : $('fWkFrom').value,
     wkTo: $('rowOT').style.display==='none' ? '' : $('fWkTo').value,
-    otHrs: $('rowOT').style.display==='none' ? null : (+$('fOtHrs').value||null),
-    otRate: $('rowOT').style.display==='none' ? null : (+$('fOtRate').value||null),
-    otAmt: $('rowOT').style.display==='none' ? null : ((+$('fOtHrs').value||0)*(+$('fOtRate').value||0) || null),
+    otHrs: ($('rowWage').style.display==='none') ? null : (+$('fOtHrs').value||null),
+    otRate: ($('rowWage').style.display==='none') ? null : (+$('fOtRate').value||null),
+    otAmt: ($('rowWage').style.display==='none') ? null : ((+$('fOtHrs').value||0)*(+$('fOtRate').value||0) || null),
     quality: $('rowQuality').style.display==='none' ? '' : $('fQuality').value,
     qtype: $('rowQuality').style.display==='none' ? '' : $('fQType').value, qty: +$('fQty').value||null, rate: +$('fRate').value||null,
     amount: cash, advance: adv, balance: bal,
@@ -1476,7 +1525,8 @@ const RGROUPS = {
 let rGroupBy = {ri:'subject', re:'info'};
 
 // Advance pay is money handed over in advance, not a cost — kept out of expense totals.
-function isAdvancePay(e){ return e.ctype==='EXPENSE' && /ADVANCE/.test((e.info||'').toUpperCase()); }
+function isAdvanceCat(c){ return /ADVANCE/.test((c||'').toUpperCase()); }
+function isAdvancePay(e){ return e.ctype==='EXPENSE' && isAdvanceCat(e.info); }
 function isSalary(e){ return e.ctype==='EXPENSE' && expGroup(e.info)==='EMP'; }
 function isAdvance(e){ return isSalary(e) && /ADVANCE|AD PAY/.test((e.info||'').toUpperCase()); }
 function rFill(p){
@@ -1910,6 +1960,60 @@ function changePin(){
   db.pin = next.trim(); save(); toast('Delete password changed');
 }
 
+/* ================= PHONE STORAGE ================= */
+// Everything lives in this phone's own storage. Ask the browser to mark it
+// persistent so it is not cleared when the phone runs low on space.
+async function storageInfo(){
+  const o = {persisted:null, used:0, quota:0, entries:(db.entries||[]).length, bytes:0};
+  try { o.bytes = new Blob([localStorage.getItem(KEY)||'']).size; } catch(e){}
+  try {
+    if(navigator.storage && navigator.storage.persisted) o.persisted = await navigator.storage.persisted();
+    if(navigator.storage && navigator.storage.estimate){
+      const est = await navigator.storage.estimate();
+      o.used = est.usage||0; o.quota = est.quota||0;
+    }
+  } catch(e){}
+  return o;
+}
+function kb(n){
+  if(n < 1024) return n + ' B';
+  if(n < 1048576) return (n/1024).toFixed(1) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+}
+async function renderStorage(){
+  if(!$('stoBox')) return;
+  const s = await storageInfo();
+  const state = s.persisted === true
+    ? `<span class="use" style="background:var(--income-bg);border-color:#BFE0CB;color:var(--income)">Protected</span>`
+    : (s.persisted === false ? `<span class="use">Not protected</span>` : '');
+  const rows = [
+    ['Saved on this phone', `${s.entries} entr${s.entries===1?'y':'ies'} · ${kb(s.bytes)}`],
+    ['Storage state', state || 'Unknown on this browser'],
+  ];
+  if(s.quota) rows.push(['Space available', `${kb(s.quota - s.used)} free of ${kb(s.quota)}`]);
+  $('stoBox').innerHTML = rows.map(([k,v]) =>
+    `<div class="bar"><span class="name">${k}</span><span class="amt">${v}</span></div>`).join('');
+  $('stoHint').innerHTML = s.persisted === true
+    ? 'Android will not clear this data to free up space. It is still removed if you clear Chrome’s site data or uninstall the app, so keep taking backups.'
+    : 'Tap “Protect this data” so Android never clears it to free up space. Keep taking backups either way — clearing Chrome’s site data still erases everything.';
+}
+async function askPersist(){
+  if(!(navigator.storage && navigator.storage.persist)){
+    toast('This browser cannot protect storage'); return;
+  }
+  const ok = await navigator.storage.persist();
+  toast(ok ? 'Storage protected on this phone' : 'Android did not grant protection — try again after using the app a few times');
+  renderStorage();
+}
+// ask quietly on first load
+(async () => {
+  try {
+    if(navigator.storage && navigator.storage.persist && navigator.storage.persisted){
+      if(!(await navigator.storage.persisted())) await navigator.storage.persist();
+    }
+  } catch(e){}
+})();
+
 /* ================= BACKUP ================= */
 function download(name, text, type){
   const a = document.createElement('a');
@@ -1985,16 +2089,18 @@ function blTotals(rows){
   let inc=0, exp=0, expPaid=0, advPay=0, got=0;
   rows.forEach(e => {
     if(e.ctype==='INCOME'){ inc += e.amount||0; got += e.advance||0; }
-    else if(isAdvancePay(e)) advPay += e.amount||0;        // advance, not an expense
+    else if(isAdvancePay(e)) advPay += e.advance||0;       // advance the agent actually handed over
     else if(e.status==='CLOSED') expPaid += e.amount||0;   // already settled - not deducted
     else exp += e.amount||0;                               // still owed to the agent
   });
-  return {inc, exp, expPaid, advPay, net: inc-exp, got, due: (inc-exp)-got};
+  const net = inc - exp - advPay;                          // advance paid by the agent comes off
+  return {inc, exp, expPaid, advPay, net, got, due: net - got};
 }
 function renderBill(){
   const rows = blRows(), t = blTotals(rows);
   $('blIn').textContent = fmt(t.inc);
   $('blOut').textContent = '− ' + fmt(t.exp);
+  $('blAdv').textContent = '− ' + fmt(t.advPay);
   $('blPaidExp').textContent = fmt(t.expPaid);
   $('blNet').textContent = sfmt(t.net);
   $('blGot').textContent = fmt(t.got);
@@ -2037,26 +2143,27 @@ function blHtml(rows){
     let i=0,o=0,paid=0,adv=0,got=0;
     list.forEach(e => {
       if(e.ctype==='INCOME'){ i+=e.amount||0; got+=e.advance||0; }
-      else if(isAdvancePay(e)) adv+=e.amount||0;
+      else if(isAdvancePay(e)) adv+=e.advance||0;
       else if(e.status==='CLOSED') paid+=e.amount||0;
       else o+=e.amount||0;
     });
-    return {i,o,paid,adv,net:i-o,got};
+    return {i,o,paid,adv,net:i-o-adv,got};
   };
   const paidTag = '<span class="pd">paid</span>';
   const advTag  = '<span class="ad">advance</span>';
   const line = e => {
     const adv = isAdvancePay(e);
     const closedExp = e.ctype==='EXPENSE' && !adv && e.status==='CLOSED';
+    void closedExp;
     const who = [e.broker ? 'Broker: '+e.broker : '', e.address || ''].filter(Boolean).join(' · ');
-    return `<tr class="${closedExp||adv?'done':''}">
+    return `<tr class="${closedExp?'done':''}">
       <td>${esc(e.date)}</td>
       <td>${esc(e.quality||e.info||'')}${e.qtype?`<span class="q"> ${esc(e.qtype)}</span>`:''}${closedExp?paidTag:''}${adv?advTag:''}</td>
       <td class="bk">${esc(who)}</td>
       <td class="n">${e.qty!=null?e.qty:''}</td>
       <td class="n">${e.rate!=null?e.rate:''}</td>
       <td class="n">${e.ctype==='INCOME'?money(e.amount):''}</td>
-      <td class="n ${closedExp||adv?'pdv':'r'}">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
+      <td class="n ${closedExp?'pdv':'r'}">${e.ctype==='EXPENSE'?money(e.amount):''}</td>
     </tr>`;
   };
 
@@ -2067,14 +2174,14 @@ function blHtml(rows){
     body += `<tr class="veh"><td colspan="5">${esc(name)}</td><td class="n">${g.i?money(g.i):''}</td><td class="n r">${g.o?money(g.o):''}</td></tr>`;
     body += list.map(line).join('');
     const notes = [];
-    if(g.paid) notes.push(`₹${g.paid.toLocaleString('en-IN')} already paid`);
-    if(g.adv)  notes.push(`₹${g.adv.toLocaleString('en-IN')} advance`);
-    body += `<tr class="vnet"><td colspan="6">Net — ${esc(name)}${notes.length?` <span class="q">(${notes.join(', ')}, not deducted)</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
+    if(g.paid) notes.push(`₹${g.paid.toLocaleString('en-IN')} already paid, not deducted`);
+    if(g.adv)  notes.push(`includes ₹${g.adv.toLocaleString('en-IN')} advance deducted`);
+    body += `<tr class="vnet"><td colspan="6">Net — ${esc(name)}${notes.length?` <span class="q">(${notes.join('; ')})</span>`:''}</td><td class="n">${sg(g.net)}</td></tr>`;
   };
   Object.keys(byVeh).sort().forEach(v => block(v, byVeh[v]));
   if(other.length) block(`Expense made by ${agent}`, other);
 
-  const grand = T.i - T.o, due = grand - T.got;
+  const grand = T.i - T.o - T.adv, due = grand - T.got;
   const fname = `${agent} - bill - ${from==='—'?'all':from} to ${to}`.replace(/[\\/:*?"<>|]/g,'-');
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fname)}</title><style>
     @page{size:A4;margin:14mm}
@@ -2135,7 +2242,7 @@ function blHtml(rows){
       <div><span>Total income</span><span>${money(T.i)}</span></div>
       <div><span>Less: expenses owed to agent</span><span class="r">− ${money(T.o)}</span></div>
       ${T.paid ? `<div class="muted"><span>Expenses already paid (not deducted)</span><span>${money(T.paid)}</span></div>` : ''}
-      ${T.adv ? `<div class="muted"><span>Advance pay (not deducted)</span><span>${money(T.adv)}</span></div>` : ''}
+      ${T.adv ? `<div><span>Less: advance paid by agent</span><span class="r">− ${money(T.adv)}</span></div>` : ''}
       <div class="net"><span>NET PAYABLE</span><span>${sg(grand)}</span></div>
       <div class="sep"><span>Already received</span><span>${money(T.got)}</span></div>
       <div class="due"><span>BALANCE DUE</span><span>${sg(due)}</span></div>
@@ -2254,6 +2361,12 @@ function importJSON(input){
       db = migrate(data); save();
       refreshFormSelects(); renderDash(); renderManage(); renderMenu(); renderList();
       toast(`Backup restored — ${db.entries.length} entries`);
+      alert(`Backup restored.\n\n` +
+            `Entries: ${db.entries.length}\n` +
+            `Sites: ${db.sites.length}   Vehicles: ${db.vehicles.length}\n` +
+            `Agents: ${db.agents.length}   Brokers: ${db.brokers.length}\n` +
+            `Employees: ${db.employees.length}   Machines: ${db.machines.length}\n\n` +
+            (db.brokers.length ? '' : 'This backup had no broker names saved. Add them under Manage → Brokers.'));
     } catch(e){ toast('Not a valid backup file'); }
     input.value='';
   };
@@ -2262,9 +2375,37 @@ function importJSON(input){
 
 /* ================= INIT ================= */
 $('todayLabel').textContent = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+$('verTag').textContent = APP_VERSION;
 refreshFormSelects();
 renderDash();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+/* ---------- updates ---------- */
+let waitingSW = null;
+function applyUpdate(){
+  if(waitingSW) waitingSW.postMessage('skipWaiting');
+  setTimeout(() => location.reload(), 300);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // a worker already waiting from a previous visit
+    if(reg.waiting){ waitingSW = reg.waiting; $('updBanner').style.display = 'flex'; }
+    reg.addEventListener('updatefound', () => {
+      const sw = reg.installing;
+      if(!sw) return;
+      sw.addEventListener('statechange', () => {
+        if(sw.state === 'installed' && navigator.serviceWorker.controller){
+          waitingSW = sw; $('updBanner').style.display = 'flex';
+        }
+      });
+    });
+    // check again whenever the app is reopened
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) reg.update(); });
+    setTimeout(() => reg.update(), 2000);
+  }).catch(()=>{});
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(reloaded) return; reloaded = true; location.reload();
+  });
+}
 </script>
 </body>
 </html>
